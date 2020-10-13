@@ -1,27 +1,40 @@
-import React, { FC,Fragment } from 'react';
-import { useMount, useRequest } from 'ahooks';
+import React, { FC } from 'react';
+import { useBoolean, useMount, useRequest, useSetState } from 'ahooks';
+import { useSpring, animated } from 'react-spring';
 import { useDispatch, useSelector } from '@@/plugin-dva/exports';
 import { ConnectState } from '@/models/connect';
-const BasicLayoutAuth:FC=({children})=>{
+import { GlobalLoading } from '@/components';
+import { BasicLayoutBox } from '@/wrappers/style';
+const BasicLayoutAuth: FC = ({ children }) => {
+  const [isFirstFetch, { setFalse }] = useBoolean(true);
+  const userRequest = useRequest(fetchUser, {
+    manual: true,
+  });
+  const props = useSpring({
+    config: {
+      duration: 120,
+    },
+    opacity: userRequest.loading || isFirstFetch ? 1 : 0,
+  });
   const dispatch = useDispatch();
-  const userRequest=useRequest(fetchUser,{
-    manual:true
-  })
-  const user = useSelector((state:ConnectState)=>state.user.user);
 
-  console.log({user});
-  useMount(async ()=>{
+  const user = useSelector((state: ConnectState) => state.user.user);
+
+  console.log({ 123: userRequest.loading });
+  useMount(async () => {
     await userRequest.run();
-  })
-  async function fetchUser(){
+    setFalse();
+  });
+  async function fetchUser() {
     await dispatch({
-      type:'user/fetchUserInfo'
-    })
+      type: 'user/fetchUserInfo',
+    });
   }
   return (
-    <Fragment>
-      {children}
-    </Fragment>
-  )
-}
-export default BasicLayoutAuth
+    <BasicLayoutBox>
+      <GlobalLoading style={props}>正在加载数据...</GlobalLoading>
+      {!userRequest.loading && !user ? <div>出错请刷新</div> : children}
+    </BasicLayoutBox>
+  );
+};
+export default BasicLayoutAuth;

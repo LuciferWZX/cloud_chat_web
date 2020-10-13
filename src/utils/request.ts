@@ -1,4 +1,5 @@
 import { extend, RequestOptionsInit, ResponseError } from 'umi-request';
+import styles from '@/global.less';
 import { notification } from 'antd';
 
 // const baseUrl = process.env.apiUrl;
@@ -33,14 +34,19 @@ const errorHandler = (error: ResponseError): Response => {
       (codeMessage as { [key: number]: string })[response.status] ||
       response.statusText;
     const { status, url } = response;
+    //const msg:string = `请求错误 ${status}: ${url}`;
+    const msg: string = `请求错误 ${status}`;
     notification.error({
-      message: `请求错误 ${status}: ${url}`,
+      icon: null,
+      message: msg,
       description: errorText,
+      className: styles['request-err-notification'],
     });
   } else if (!response) {
     notification.error({
       description: '您的网络发生异常，无法连接服务器',
       message: '网络异常',
+      className: styles['request-err-notification'],
     });
   }
   return response;
@@ -56,25 +62,26 @@ const request = extend({
 // request拦截器, 改变url 或 options.
 request.interceptors.request.use(
   (url: string, options: RequestOptionsInit): any => {
-
     let TOKEN = localStorage.getItem('Authorization');
     if (TOKEN) {
-
+      options.headers = {
+        'Content-Type': 'application/json; charset=utf-8',
+        //Accept: 'application/json',
+        Authorization: 'Bearer ' + TOKEN,
+      };
     }
-    options.headers = {
-      'Content-Type': 'application/json; charset=utf-8',
-      //Accept: 'application/json',
-      Authorization: "Bearer "+TOKEN,
-    };
-    console.log(options.headers);
   },
 );
 
 // response拦截器, 处理response
+// @ts-ignore
 request.interceptors.response.use((response, options) => {
   // let token = response.headers.get('Authorization');
   // if (token) {
   //   localStorage.setItem('Authorization', token);
+  // }
+  // if(!response.ok){
+  //   return null
   // }
   return response;
 });

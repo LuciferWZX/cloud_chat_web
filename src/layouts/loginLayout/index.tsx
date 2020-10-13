@@ -1,10 +1,15 @@
 import React, { FC } from 'react';
-const LoginLayout:FC=({children})=>{
-  return(
-    <div>
-      注册登录界面
-      {children}
-    </div>
-  )
-}
-export default LoginLayout
+import { ParticleBackground } from '@/components';
+import {
+  LoginLayoutBox,
+  LoginLayoutContainer,
+} from '@/layouts/loginLayout/style';
+const LoginLayout: FC = ({ children }) => {
+  return (
+    <LoginLayoutBox>
+      <ParticleBackground />
+      <LoginLayoutContainer>{children}</LoginLayoutContainer>
+    </LoginLayoutBox>
+  );
+};
+export default LoginLayout;
