@@ -2,12 +2,15 @@ import { Reducer } from 'react';
 import { Effect } from 'dva';
 import { history } from 'umi';
 import {
+  emailLogin,
   fetchUser,
   registerUserByEmail,
   sendVerifyToEmail,
 } from '@/services/user';
-import { ResponseDataType } from '@/utils/constans';
+import { ResponseDataType, StorageType } from '@/utils/constans';
 import { message } from 'antd';
+import { clearStorage, setStorage } from '@/utils/util';
+
 export interface User {
   auth: number;
   avatar: null | string;
@@ -20,6 +23,7 @@ export interface User {
   sex: number;
   updateTime: string;
   username: string;
+  token: string;
 }
 export interface UserModelState {
   user: null | User;
@@ -31,6 +35,7 @@ export interface UserModelType {
     fetchUserInfo: Effect;
     registerUserByEmail: Effect;
     sendVerifyToEmail: Effect;
+    emailLogin: Effect;
   };
   reducers: {
     save: Reducer<UserModelState, any>;
@@ -51,13 +56,27 @@ const UserModel: UserModelType = {
     *fetchUserInfo(_, { call, put }) {
       const result: ResponseDataType = yield call(fetchUser);
       if (result.code === 200) {
+        const user: User = result.data;
+        //存储用户信息
         yield put({
           type: 'save',
           payload: {
-            user: result.data,
+            user: user,
           },
         });
-      } else {
+        //跳转到主页
+        history.replace('/');
+      }
+      if (result.code === 100) {
+        //清空用户信息
+        yield put({
+          type: 'save',
+          payload: {
+            user: null,
+          },
+        });
+        //清除token
+        clearStorage('Authorization');
         //跳转到登录页面
         history.replace('/userAction/login');
       }
@@ -90,6 +109,31 @@ const UserModel: UserModelType = {
       } else {
         message.error(result.message);
         return 'failed';
+      }
+    },
+    /**
+     * 邮箱登录
+     * @param payload
+     * @param call
+     */
+    *emailLogin({ payload }, { call }) {
+      const result: ResponseDataType = yield call(emailLogin, payload);
+      if (result.code === 200) {
+        message.success(result.message);
+        const user: User = result.data;
+        //存入storage里面
+        setStorage(
+          'Authorization',
+          user.token,
+          payload.autoLogin
+            ? StorageType.localStorage
+            : StorageType.sessionStorage,
+        );
+        //跳转主页
+        history.replace('/');
+      }
+      if (result.code === 202) {
+        message.error(result.message);
       }
     },
   },

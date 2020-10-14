@@ -36,7 +36,7 @@ const EmailRegister: FC = () => {
   });
 
   const [{ count, interval }, setState] = useSetState<IState>({
-    count: 10,
+    count: 60,
     interval: null,
   });
   //定时器
@@ -45,7 +45,7 @@ const EmailRegister: FC = () => {
       if (count === 0) {
         setState({
           interval: null,
-          count: 10,
+          count: 60,
         });
       } else {
         setState({
@@ -116,6 +116,7 @@ const EmailRegister: FC = () => {
       },
     },
   };
+
   return (
     <RegisterBox>
       <Form

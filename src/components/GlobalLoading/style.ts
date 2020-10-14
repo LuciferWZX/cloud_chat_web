@@ -3,6 +3,8 @@ import { animated } from 'react-spring';
 
 const GlobalLoadingBox = styled(animated.div)`
   position: absolute;
+  top: 0;
+  left: 0;
   display: flex;
   height: 100%;
   width: 100%;
@@ -10,7 +12,7 @@ const GlobalLoadingBox = styled(animated.div)`
   align-items: center;
   text-align: center;
   background: rgba(47, 53, 66, 1);
-  z-index: 100;
+  z-index: 1;
   .container {
     h2 {
       color: #ccc;

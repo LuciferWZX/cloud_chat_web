@@ -1,5 +1,6 @@
 import styled from 'styled-components';
-const BasicLayoutBox = styled.div`
+import { animated } from 'react-spring';
+const BasicLayoutBox = styled(animated.div)`
   height: 100%;
   position: relative;
 `;

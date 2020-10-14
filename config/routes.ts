@@ -2,6 +2,7 @@ export default [
   {
     path: '/userAction',
     component: '@/layouts/loginLayout',
+    wrappers: ['@/wrappers/LoginLayoutAuth'],
     routes: [
       { path: '/userAction', redirect: '/userAction/login' },
       {

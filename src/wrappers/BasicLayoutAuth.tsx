@@ -1,6 +1,6 @@
-import React, { FC } from 'react';
-import { useBoolean, useMount, useRequest, useSetState } from 'ahooks';
-import { useSpring, animated } from 'react-spring';
+import React, { FC, Fragment } from 'react';
+import { useBoolean, useMount, useRequest } from 'ahooks';
+import { useTransition } from 'react-spring';
 import { useDispatch, useSelector } from '@@/plugin-dva/exports';
 import { ConnectState } from '@/models/connect';
 import { GlobalLoading } from '@/components';
@@ -10,17 +10,17 @@ const BasicLayoutAuth: FC = ({ children }) => {
   const userRequest = useRequest(fetchUser, {
     manual: true,
   });
-  const props = useSpring({
+
+  const transitions = useTransition(userRequest.loading || isFirstFetch, null, {
+    from: { opacity: 1 },
+    enter: { opacity: 1 },
+    leave: { opacity: 0 },
     config: {
-      duration: 120,
+      duration: 200,
     },
-    opacity: userRequest.loading || isFirstFetch ? 1 : 0,
   });
   const dispatch = useDispatch();
-
   const user = useSelector((state: ConnectState) => state.user.user);
-
-  console.log({ 123: userRequest.loading });
   useMount(async () => {
     await userRequest.run();
     setFalse();
@@ -31,10 +31,19 @@ const BasicLayoutAuth: FC = ({ children }) => {
     });
   }
   return (
-    <BasicLayoutBox>
-      <GlobalLoading style={props}>正在加载数据...</GlobalLoading>
-      {!userRequest.loading && !user ? <div>出错请刷新</div> : children}
-    </BasicLayoutBox>
+    <Fragment>
+      {transitions.map(({ item, key, props }) =>
+        item ? (
+          <GlobalLoading style={props} key={key}>
+            正在加载数据...
+          </GlobalLoading>
+        ) : (
+          <BasicLayoutBox style={props} key={key}>
+            {!userRequest.loading && !user ? <div>出错请刷新</div> : children}
+          </BasicLayoutBox>
+        ),
+      )}
+    </Fragment>
   );
 };
 export default BasicLayoutAuth;

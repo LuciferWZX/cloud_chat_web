@@ -29,3 +29,14 @@ export async function sendVerifyToEmail(param: { email: string }) {
     method: 'GET',
   });
 }
+
+/**
+ * 邮箱登录
+ * @param params
+ */
+export async function emailLogin(params: { email: string; password: string }) {
+  return request('/user/emailLogin', {
+    method: 'POST',
+    data: params,
+  });
+}

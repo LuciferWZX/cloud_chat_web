@@ -2,6 +2,8 @@ import React, { FC } from 'react';
 import { EmailLoginBox } from '@/pages/user/login/style';
 import { Avatar, Button, Checkbox, Form, Input } from 'antd';
 import { history } from 'umi';
+import { useDispatch } from '@@/plugin-dva/exports';
+import { useRequest } from 'ahooks';
 
 interface EmailFormProps {
   email: string;
@@ -9,6 +11,10 @@ interface EmailFormProps {
   autoLogin: boolean;
 }
 const EmailForm: FC = () => {
+  const dispatch = useDispatch();
+  const loginRequest = useRequest(emailLogin, {
+    manual: true,
+  });
   const layout = {
     labelCol: { span: 8 },
     wrapperCol: { span: 16 },
@@ -16,9 +22,19 @@ const EmailForm: FC = () => {
   const tailLayout = {
     wrapperCol: { offset: 8, span: 16 },
   };
-  //邮箱登录
-  const emailLogin = (values: EmailFormProps) => {
+  //登录的请求
+  async function emailLogin(params: EmailFormProps) {
+    return dispatch({
+      type: 'user/emailLogin',
+      payload: {
+        ...params,
+      },
+    });
+  }
+  //提交
+  const onFinish = async (values: EmailFormProps) => {
     console.log({ values });
+    await loginRequest.run(values);
   };
   //去注册
   const goRegister = () => {
@@ -37,7 +53,7 @@ const EmailForm: FC = () => {
       <Form
         {...layout}
         hideRequiredMark={true}
-        onFinish={emailLogin}
+        onFinish={onFinish}
         initialValues={{
           email: '',
           password: '',
@@ -67,7 +83,12 @@ const EmailForm: FC = () => {
           </Button>
         </Form.Item>
         <Form.Item {...tailLayout}>
-          <Button htmlType={'submit'} block={true} type={'primary'}>
+          <Button
+            loading={loginRequest.loading}
+            htmlType={'submit'}
+            block={true}
+            type={'primary'}
+          >
             登录
           </Button>
         </Form.Item>
