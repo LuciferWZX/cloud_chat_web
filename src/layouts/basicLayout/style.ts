@@ -83,12 +83,12 @@ const SiderMenuBox = styled.div`
     height: 40px;
     transition: transform 0.3s;
   }
-  a:hover {
-    margin: 30px 0 20px 0;
-  }
-  a:hover .layer {
-    transform: rotate(-35deg) skew(20deg);
-  }
+  //a:hover {
+  //  margin: 30px 0 20px 0;
+  //}
+  //a:hover .layer {
+  //  transform: rotate(-35deg) skew(20deg);
+  //}
   a .layer span {
     position: absolute;
     top: 0;
@@ -104,25 +104,25 @@ const SiderMenuBox = styled.div`
     line-height: 45px;
     text-align: center;
   }
-  a:hover .layer span:nth-child(1) {
-    opacity: 0.2;
-  }
-  a:hover .layer span:nth-child(2) {
-    opacity: 0.4;
-    transform: translate(5px, -5px);
-  }
-  a:hover .layer span:nth-child(3) {
-    opacity: 0.6;
-    transform: translate(10px, -10px);
-  }
-  a:hover .layer span:nth-child(4) {
-    opacity: 0.8;
-    transform: translate(15px, -15px);
-  }
-  a:hover .layer span:nth-child(5) {
-    opacity: 1;
-    transform: translate(20px, -20px);
-  }
+  //a:hover .layer span:nth-child(1) {
+  //  opacity: 0.2;
+  //}
+  //a:hover .layer span:nth-child(2) {
+  //  opacity: 0.4;
+  //  transform: translate(5px, -5px);
+  //}
+  //a:hover .layer span:nth-child(3) {
+  //  opacity: 0.6;
+  //  transform: translate(10px, -10px);
+  //}
+  //a:hover .layer span:nth-child(4) {
+  //  opacity: 0.8;
+  //  transform: translate(15px, -15px);
+  //}
+  //a:hover .layer span:nth-child(5) {
+  //  opacity: 1;
+  //  transform: translate(20px, -20px);
+  //}
   a:nth-child(1) .layer span,
   a:nth-child(1) .text {
     color: #4267b2;
@@ -173,10 +173,10 @@ const SiderMenuBox = styled.div`
     transform: translateX(-50%);
     transition: bottom 0.3s ease, opacity 0.3s ease;
   }
-  a:hover .text {
-    bottom: -20px;
-    opacity: 1;
-  }
+  //a:hover .text {
+  //  bottom: -20px;
+  //  opacity: 1;
+  //}
 `;
 const ChildrenBox = styled.div`
   flex: 1;

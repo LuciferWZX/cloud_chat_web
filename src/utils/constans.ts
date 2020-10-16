@@ -9,3 +9,9 @@ export enum StorageType {
   both = 'BOTH',
   oneOf = 'ONE_OF',
 }
+export enum MsgType {
+  Message,
+  Image,
+  Video,
+  File,
+}

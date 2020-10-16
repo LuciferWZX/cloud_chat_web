@@ -5,5 +5,10 @@ export default {
       changeOrigin: true,
       pathRewrite: { '^/user/': '' },
     },
+    '/message/': {
+      target: 'http://localhost:3000/message',
+      changeOrigin: true,
+      pathRewrite: { '^/message/': '' },
+    },
   },
 };

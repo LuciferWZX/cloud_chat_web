@@ -37,12 +37,11 @@ const BasicLayoutAuth: FC = ({ children }) => {
           <GlobalLoading style={props} key={key}>
             正在加载数据...
           </GlobalLoading>
-        ) : (
-          <BasicLayoutBox style={props} key={key}>
-            {!userRequest.loading && !user ? <div>出错请刷新</div> : children}
-          </BasicLayoutBox>
-        ),
+        ) : null,
       )}
+      <BasicLayoutBox>
+        {!userRequest.loading && !user ? <div>出错请刷新</div> : children}
+      </BasicLayoutBox>
     </Fragment>
   );
 };

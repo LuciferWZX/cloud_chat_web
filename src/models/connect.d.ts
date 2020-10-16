@@ -1,5 +1,5 @@
 import { UserModelState } from './user';
-
+import { MessageModelState } from '@/models/message';
 
 export interface Loading {
   global: boolean;
@@ -12,5 +12,6 @@ export interface Loading {
 export interface ConnectState {
   loading: Loading;
   user: UserModelState;
+  message: MessageModelState;
 }
 export { UserModelState };

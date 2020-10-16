@@ -37,7 +37,7 @@ const SiderBar: FC = () => {
           <a
             onClick={() => changeMenu(item.path)}
             className={classnames({
-              active: activeKey === item.path,
+              active: history.location.pathname.indexOf(item.path) > -1,
             })}
           >
             <div className="layer">
@@ -88,15 +88,17 @@ const SiderBar: FC = () => {
           //trigger={['click']}
           overlay={menu}
         >
-          <Avatar
-            className={'avatar-box'}
-            src={avatar === null ? undefined : avatar}
-            style={{ backgroundColor: '#f56a00' }}
-            size={50}
-            shape={'square'}
-          >
-            <span className={'first-char'}>{renderFirstChart()}</span>
-          </Avatar>
+          <Badge color={'green'} offset={[0, 0]} dot={true}>
+            <Avatar
+              className={'avatar-box'}
+              src={avatar === null ? undefined : avatar}
+              style={{ backgroundColor: '#f56a00' }}
+              size={50}
+              shape={'square'}
+            >
+              <span className={'first-char'}>{renderFirstChart()}</span>
+            </Avatar>
+          </Badge>
         </Dropdown>
       </div>
       <Divider className={'divider'} type={'horizontal'} />

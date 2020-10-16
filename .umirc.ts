@@ -1,6 +1,7 @@
 import { defineConfig } from 'umi';
 import proxy from './config/proxy';
 import routes from './config/routes';
+import webpackConfig from './config/webpackConfig';
 const name = require('./package.json').name;
 export default defineConfig({
   nodeModulesTransform: {
@@ -14,16 +15,11 @@ export default defineConfig({
     antd: true,
     title: true,
   },
-  hash:true,
+  hash: true,
   proxy: proxy['dev'],
-  devServer:{
-    port:8088
+  devServer: {
+    port: 8088,
   },
   routes: routes,
-  chainWebpack: (_: any, {}) => {
-    _.output
-      .library(`${name}-[name]`)
-      .libraryTarget('umd')
-      .jsonpFunction(`webpackJsonp_${name}`);
-  },
+  chainWebpack: webpackConfig,
 });
