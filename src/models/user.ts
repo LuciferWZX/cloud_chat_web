@@ -65,7 +65,7 @@ const UserModel: UserModelType = {
           },
         });
         //跳转到主页
-        history.replace('/');
+        //history.replace('/');
       }
       if (result.code === 100) {
         //清空用户信息

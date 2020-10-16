@@ -3,6 +3,7 @@ import { MessagePageBox } from '@/pages/message/style';
 import ContactContainer from '@/pages/message/ContactContainer';
 import { useDispatch } from '@@/plugin-dva/exports';
 import { useMount, useRequest } from 'ahooks';
+import ChatContainer from '@/pages/message/ChatContainer';
 
 const Message: FC = () => {
   const dispatch = useDispatch();
@@ -21,7 +22,7 @@ const Message: FC = () => {
   return (
     <MessagePageBox>
       <ContactContainer />
-      <div>dddddd</div>
+      <ChatContainer />
     </MessagePageBox>
   );
 };

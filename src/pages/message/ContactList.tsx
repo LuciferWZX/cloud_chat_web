@@ -3,24 +3,24 @@ import { ContactItem } from '@/components';
 import { ContactListBox } from '@/pages/message/style';
 import { useSelector } from '@@/plugin-dva/exports';
 import { ConnectState } from '@/models/connect';
-import { useTransition } from 'react-spring';
 import { animated } from 'react-spring';
+import useAnimatedList from '@/hooks/useAnimatedList';
 
 const ContactList: FC = () => {
   const conversations = useSelector(
     (state: ConnectState) => state.message.conversations,
   );
   //数组动画
-  const transitions = useTransition(conversations, item => item.friendId, {
-    from: { transform: 'translate3d(0,-40px,0)' },
-    enter: { transform: 'translate3d(0,0px,0)' },
-    leave: { transform: 'translate3d(0,-40px,0)' },
-  });
+  const transitions = useAnimatedList(conversations.length);
 
   const renderConversations = () => {
-    return transitions.map(({ item, key, props }) => {
+    return conversations.map((item, index) => {
       return (
-        <animated.div style={props} className={'conversation-item'} key={key}>
+        <animated.div
+          style={transitions[index]}
+          className={'conversation-item'}
+          key={item.friendId}
+        >
           <ContactItem
             avatar={item.avatar}
             nickname={item.nickname}

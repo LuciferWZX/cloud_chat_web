@@ -4,7 +4,7 @@ import { Avatar, Badge, Divider, Dropdown, Menu } from 'antd';
 import { useSelector } from '@@/plugin-dva/exports';
 import { ConnectState } from '@/models/connect';
 import { useWhyDidYouUpdate } from 'ahooks';
-import { history } from 'umi';
+import { history, useLocation, matchPath } from 'umi';
 import classnames from 'classnames';
 import { LogoutOutlined, SettingFilled } from '@ant-design/icons';
 const { SubMenu } = Menu;
@@ -25,19 +25,26 @@ const SiderBar: FC = () => {
     setActiveKey(path);
     history.push(path);
   };
+
   const renderMenu = () => {
+    const location = useLocation();
+
     const MENU = [
       { path: '/message', name: '消息', icon: 'MessageOutlined', badge: 10 },
       { path: '/file', name: '文件', icon: 'FolderOutlined', badge: 0 },
     ];
     return MENU.map(item => {
+      const active = !!matchPath(location.pathname, {
+        path: item.path,
+        exact: item.path === '/',
+      });
       const Icon = require('@ant-design/icons')[item.icon];
       return (
         <Badge key={item.path} count={item.badge} offset={[0, 20]}>
           <a
             onClick={() => changeMenu(item.path)}
             className={classnames({
-              active: history.location.pathname.indexOf(item.path) > -1,
+              active: active,
             })}
           >
             <div className="layer">

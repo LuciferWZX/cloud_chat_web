@@ -23,6 +23,7 @@ const ContactListBox = styled(Scrollbars)`
   .conversation-item {
     box-sizing: border-box;
     padding: 10px 10px 0 10px;
+    will-change: transform, opacity;
     :last-child {
       margin-bottom: 10px;
     }
