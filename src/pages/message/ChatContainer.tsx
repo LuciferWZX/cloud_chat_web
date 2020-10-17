@@ -2,7 +2,49 @@ import React, { FC } from 'react';
 import '@chatui/core/es/styles/index.less';
 import Chat, { Bubble, useMessages } from '@chatui/core';
 import '@chatui/core/dist/index.css';
+import { ChatNavBar } from '@/components';
+import { Input } from 'antd';
+import { useDispatch, useSelector } from '@@/plugin-dva/exports';
+import { ConnectState } from '@/models/connect';
+import { useRequest, useUpdateEffect } from 'ahooks';
 const ChatContainer: FC = () => {
+  //获取好友的信息及聊天记录
+  const friendChatDataRequest = useRequest(fetchFriendChatData, {
+    manual: true,
+  });
+  const dispatch = useDispatch();
+  //当前选中的好友的id
+  const currentFriendId = useSelector(
+    (state: ConnectState) => state.message.currentFriendId,
+  );
+  //当前的聊天记录的map
+  const chatListMap = useSelector(
+    (state: ConnectState) => state.message.chatListMap,
+  );
+
+  console.log({ chatListMap });
+  useUpdateEffect(() => {
+    if (currentFriendId !== '') {
+      //获取所有聊天记录的大map
+      const friendChatInfo = chatListMap.get(currentFriendId);
+      //如果该用户在聊天记录的map里不存在就调取接口，获取记录及好友信息并存储到map
+      if (!friendChatInfo) {
+        (async function() {
+          await friendChatDataRequest.run(currentFriendId);
+        })();
+      }
+    }
+  }, [currentFriendId]);
+
+  async function fetchFriendChatData(id: string) {
+    return dispatch({
+      type: 'message/fetchFriendChatData',
+      payload: {
+        friendId: id,
+      },
+    });
+  }
+
   const initialMessages = [
     {
       type: 'text',
@@ -14,11 +56,11 @@ const ChatContainer: FC = () => {
     {
       type: 'image',
       content: {
-        picUrl: '//img.alicdn.com/tfs/TB1p_nirYr1gK0jSZR0XXbP8XXa-300-300.png',
+        picUrl:
+          'https://gw.alicdn.com/tfs/TB1HURhcBCw3KVjSZR0XXbcUpXa-750-364.png',
       },
     },
   ];
-
   // 默认快捷短语，可选
   const defaultQuickReplies = [
     {
@@ -83,15 +125,39 @@ const ChatContainer: FC = () => {
         return null;
     }
   }
+
+  //导航栏渲染函数，会覆盖 navbar
+  const renderNavbar = () => {
+    const friendInfo = chatListMap.get(currentFriendId);
+    console.log({ friendInfo });
+    if (friendInfo) {
+      return (
+        <ChatNavBar
+          avatar={friendInfo.avatar}
+          nickname={friendInfo.nickname}
+          status={friendInfo.onlineStatus}
+        />
+      );
+    }
+    return null;
+  };
+  //上方点击加载更多
+  const loadMoreMsg = () => {
+    console.log('触发onRefresh');
+  };
   return (
     <div style={{ flex: 1 }}>
       <Chat
-        navbar={{ title: '智能助理' }}
+        //onRefresh={loadMoreMsg}
         messages={messages}
+        renderNavbar={renderNavbar}
+        inputType={'text'}
+        //renderAccessory={<div>wwww</div>}
         renderMessageContent={renderMessageContent}
         quickReplies={defaultQuickReplies}
         onQuickReplyClick={handleQuickReplyClick}
         onSend={handleSend}
+        //Composer={"<input/>"}
       />
     </div>
   );

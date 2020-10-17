@@ -1,8 +1,9 @@
 import { Reducer } from 'react';
 import { MsgType, ResponseDataType } from '@/utils/constans';
 import { Effect } from '@@/plugin-dva/connect';
-import { fetchConversations } from '@/services/message';
+import { fetchConversations, fetchFriendChatData } from '@/services/message';
 import { message } from 'antd';
+import { ConnectState } from '@/models/connect';
 
 interface ConversationItem {
   nickname: string;
@@ -16,12 +17,16 @@ interface ConversationItem {
 export interface MessageModelState {
   conversations: Array<ConversationItem>;
   searchFriendsValue: string;
+  currentFriendId: string;
+  socket: WebSocket | null;
+  chatListMap: Map<string, any>;
 }
 export interface MessageModelType {
   namespace: 'message';
   state: MessageModelState;
   effects: {
     fetchConversations: Effect;
+    fetchFriendChatData: Effect;
   };
   reducers: {
     save: Reducer<MessageModelState, any>;
@@ -43,6 +48,11 @@ const MessageModel: MessageModelType = {
     ],
     //当前搜索想要和谁会话
     searchFriendsValue: '',
+    //当前正在聊天的好友的id
+    currentFriendId: '',
+    //连接的socket
+    socket: null,
+    chatListMap: new Map(null),
   },
   effects: {
     /**
@@ -63,6 +73,28 @@ const MessageModel: MessageModelType = {
       }
       if (result.code === 100) {
         message.error(result.message);
+      }
+    },
+    *fetchFriendChatData({ payload }, { call, put, select }) {
+      const response: ResponseDataType = yield call(
+        fetchFriendChatData,
+        payload,
+      );
+      if (response.code === 200) {
+        //所有的聊天列表的map
+        const chatListMap = yield select(
+          (state: ConnectState) => state.message.chatListMap,
+        );
+        //将该好友的信息及聊天记录加入map
+        chatListMap.set(response.data.id, response.data);
+        yield put({
+          type: 'save',
+          payload: {
+            chatListMap: chatListMap,
+          },
+        });
+      } else if (response.code === 100) {
+        message.error(response.message);
       }
     },
   },

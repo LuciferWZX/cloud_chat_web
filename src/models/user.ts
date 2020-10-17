@@ -7,7 +7,7 @@ import {
   registerUserByEmail,
   sendVerifyToEmail,
 } from '@/services/user';
-import { ResponseDataType, StorageType } from '@/utils/constans';
+import { ResponseDataType, StorageType, UserStateType } from '@/utils/constans';
 import { message } from 'antd';
 import { clearStorage, setStorage } from '@/utils/util';
 
@@ -27,6 +27,7 @@ export interface User {
 }
 export interface UserModelState {
   user: null | User;
+  onlineState: UserStateType;
 }
 export interface UserModelType {
   namespace: 'user';
@@ -45,6 +46,7 @@ const UserModel: UserModelType = {
   namespace: 'user',
   state: {
     user: null,
+    onlineState: 0,
   },
   effects: {
     /**

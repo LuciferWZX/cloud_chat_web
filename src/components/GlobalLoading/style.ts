@@ -12,7 +12,8 @@ const GlobalLoadingBox = styled(animated.div)`
   align-items: center;
   text-align: center;
   background: rgba(47, 53, 66, 1);
-  z-index: 1;
+  z-index: 100;
+  will-change: transform, opacity;
   .container {
     h2 {
       color: #ccc;

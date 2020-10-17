@@ -28,5 +28,16 @@ const ContactListBox = styled(Scrollbars)`
       margin-bottom: 10px;
     }
   }
+  .contact-active {
+    background-color: rgba(47, 53, 66, 1);
+    .name {
+      color: white;
+    }
+    .date,
+    .content {
+      color: rgba(241, 242, 246, 1);
+    }
+  }
 `;
+
 export { MessagePageBox, ContactBox, ContactSearchBarBox, ContactListBox };

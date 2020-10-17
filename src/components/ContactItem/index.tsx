@@ -12,6 +12,7 @@ interface IProps {
   type: number;
   style?: React.CSSProperties;
   className?: string;
+  onClick(event: React.MouseEvent<HTMLDivElement>): void;
 }
 
 const ContactItem: FC<IProps> = ({
@@ -23,6 +24,7 @@ const ContactItem: FC<IProps> = ({
   avatar,
   type,
   style,
+  onClick,
 }) => {
   const renderContent = () => {
     if (type === MsgType.Message) {
@@ -56,7 +58,7 @@ const ContactItem: FC<IProps> = ({
   };
 
   return (
-    <ContactItemBox className={className} style={style}>
+    <ContactItemBox onClick={onClick} className={className} style={style}>
       <div className={'avatar'}>
         <Badge count={unRead}>
           <Avatar src={avatar || undefined} size={50} shape={'square'}>

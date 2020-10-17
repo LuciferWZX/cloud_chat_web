@@ -40,7 +40,11 @@ const BasicLayoutAuth: FC = ({ children }) => {
         ) : null,
       )}
       <BasicLayoutBox>
-        {!userRequest.loading && !user ? <div>出错请刷新</div> : children}
+        {!userRequest.loading && !user ? (
+          <div>出错请刷新</div>
+        ) : user ? (
+          children
+        ) : null}
       </BasicLayoutBox>
     </Fragment>
   );

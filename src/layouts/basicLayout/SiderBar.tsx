@@ -7,9 +7,9 @@ import { useWhyDidYouUpdate } from 'ahooks';
 import { history, useLocation, matchPath } from 'umi';
 import classnames from 'classnames';
 import { LogoutOutlined, SettingFilled } from '@ant-design/icons';
+import { userStateColor, userStateText } from '@/utils/constans';
 const { SubMenu } = Menu;
 const SiderBar: FC = () => {
-  const [activeKey, setActiveKey] = useState('/message');
   const nickname = useSelector(
     (state: ConnectState) => state.user.user?.nickname,
   );
@@ -17,12 +17,14 @@ const SiderBar: FC = () => {
     (state: ConnectState) => state.user.user?.username,
   );
   const avatar = useSelector((state: ConnectState) => state.user.user?.avatar);
-  useWhyDidYouUpdate('左侧用户头像组件', { username, nickname, avatar });
+  //用户在线状态
+  const onlineState = useSelector(
+    (state: ConnectState) => state.user.onlineState,
+  );
   const renderFirstChart = () => {
     return nickname != null ? nickname[0] : '';
   };
   const changeMenu = (path: string) => {
-    setActiveKey(path);
     history.push(path);
   };
 
@@ -66,9 +68,13 @@ const SiderBar: FC = () => {
       <SubMenu
         title={
           <Badge
-            color={'green'}
+            color={userStateColor[onlineState]}
             status="processing"
-            text={<span style={{ color: 'green' }}>在线</span>}
+            text={
+              <span style={{ color: userStateColor[onlineState] }}>
+                {userStateText[onlineState]}
+              </span>
+            }
           />
         }
       >
@@ -95,7 +101,7 @@ const SiderBar: FC = () => {
           //trigger={['click']}
           overlay={menu}
         >
-          <Badge color={'green'} offset={[0, 0]} dot={true}>
+          <Badge color={userStateColor[onlineState]} offset={[0, 0]} dot={true}>
             <Avatar
               className={'avatar-box'}
               src={avatar === null ? undefined : avatar}
