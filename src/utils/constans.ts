@@ -40,7 +40,13 @@ export interface SocketResponseType {
   actionType: string;
   response: ResponseDataType;
 }
-//socket将进行操作的类型
+//socket返回的数据将进行操作的类型
 export enum SocketActionType {
   UpdateUserOnlineStatus = 'update-online-status', //更新在线状态
+  UpdateFriendOnlineStatus = 'update-online-friend-status', //更新好友在线状态
+  ForceUserLoginOut = 'force-user-logout', //剔除正在登录的用户
+}
+//socket将进行操作的频道
+export enum SocketChannelType {
+  UserActionChannel = 'user-channel', //用户操作发送的频道
 }

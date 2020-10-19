@@ -17,30 +17,26 @@ const ChatContainer: FC = () => {
   const currentFriendId = useSelector(
     (state: ConnectState) => state.message.currentFriendId,
   );
+  const userId = useSelector((state: ConnectState) => state.user.user?.id);
   //当前的聊天记录的map
-  const chatListMap = useSelector(
+  const friendInfo = useSelector(
     (state: ConnectState) => state.message.chatListMap,
-  );
-
-  console.log({ chatListMap });
+  ).get(currentFriendId);
   useUpdateEffect(() => {
     if (currentFriendId !== '') {
-      //获取所有聊天记录的大map
-      const friendChatInfo = chatListMap.get(currentFriendId);
-      //如果该用户在聊天记录的map里不存在就调取接口，获取记录及好友信息并存储到map
-      if (!friendChatInfo) {
-        (async function() {
-          await friendChatDataRequest.run(currentFriendId);
-        })();
-      }
+      //获取好友信息
+      (async function() {
+        await friendChatDataRequest.run(currentFriendId, userId as string);
+      })();
     }
   }, [currentFriendId]);
-
-  async function fetchFriendChatData(id: string) {
+  //获取好友的信息
+  async function fetchFriendChatData(friendId: string, userId: string) {
     return dispatch({
       type: 'message/fetchFriendChatData',
       payload: {
-        friendId: id,
+        friendId: friendId,
+        id: userId,
       },
     });
   }
@@ -128,8 +124,7 @@ const ChatContainer: FC = () => {
 
   //导航栏渲染函数，会覆盖 navbar
   const renderNavbar = () => {
-    const friendInfo = chatListMap.get(currentFriendId);
-    console.log({ friendInfo });
+    // const friendInfo = chatListMap.get(currentFriendId);
     if (friendInfo) {
       return (
         <ChatNavBar

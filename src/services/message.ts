@@ -14,7 +14,10 @@ export async function fetchConversations() {
  * 更具好友id查询好友聊天记录和好友信息
  * @param params
  */
-export async function fetchFriendChatData(params: { friendId: string }) {
+export async function fetchFriendChatData(params: {
+  friendId: string;
+  id: string;
+}) {
   return await request(`/message/friendChatData?${qs.stringify(params)}`, {
     method: 'GET',
   });

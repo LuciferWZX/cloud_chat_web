@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { notification } from 'antd';
+import { message, notification } from 'antd';
 import { CloseCircleFilled } from '@ant-design/icons';
 import { BasicLayoutBox, ChildrenBox } from '@/layouts/basicLayout/style';
 import SiderBar from '@/layouts/basicLayout/SiderBar';
@@ -8,59 +8,114 @@ import { useMount } from 'ahooks';
 import { useDispatch, useSelector } from '@@/plugin-dva/exports';
 import { ConnectState } from '@/models/connect';
 import io from 'socket.io-client';
+import { history } from 'umi';
 import {
   SOCKET_ADDRESS,
   SocketActionType,
+  SocketChannelType,
   SocketResponseType,
 } from '@/utils/constans';
 import { User } from '@/models/user';
+import { clearStorage } from '@/utils/util';
 
 notification.config({
   closeIcon: <CloseCircleFilled style={{ fontSize: 16 }} />,
 });
 const BasicLayout: FC = ({ children }) => {
+  //当前用户信息
   const currentUser = useSelector((state: ConnectState) => state.user.user);
-  const onlineState = useSelector(
-    (state: ConnectState) => state.user.onlineState,
+  console.log('user里面的currentuser', currentUser);
+  //该用户的交流列表的好友信息及聊天列表
+  const chatListMap = useSelector(
+    (state: ConnectState) => state.message.chatListMap,
   );
-  console.log({ onlineState });
+
   const dispatch = useDispatch();
   //刚进入主页面
   useMount(() => {
     if (currentUser) {
-      initSocket(currentUser);
+      initSocket(currentUser.id);
     }
   });
-
   //初始化socket
-  const initSocket = (user: User) => {
+  const initSocket = (userId: string) => {
     const socketConfig = {
       reconnectionAttempts: 10,
       transports: ['websocket', 'polling'],
       query: {
-        uid: user.id,
+        uid: userId,
       },
     };
     const socket = io(SOCKET_ADDRESS, socketConfig);
+
     socket.on('connect', function() {
       console.log('已连接:', socket.id);
+      //通知已经登录的下线
+      // socket.emit("force-logout",JSON.stringify({
+      //   actionType:SocketActionType.ForceUserLoginOut,
+      //   response:{
+      //     code:200,
+      //     data:{
+      //       id:user.id,
+      //     },
+      //     message:'该用户正在其他地方登录'
+      //   }
+      // }))
     });
     socket.on('disconnect', function() {
-      console.log('已断开:', socket.id);
+      console.log('已断开:', socket);
     });
-    socket.on(user.id, function(response: string) {
+    socket.on(SocketChannelType.UserActionChannel, function(response: string) {
       const data: SocketResponseType = JSON.parse(response);
       console.log('该用户收到消息:', data);
       if (data.response.code === 200) {
         switch (data.actionType) {
-          //被系统通知更新状态操作
+          //用户连接socket成功的时候改变状态，或者断开的时候
           case SocketActionType.UpdateUserOnlineStatus: {
-            dispatch({
-              type: 'user/save',
-              payload: {
-                onlineState: data.response.data.status,
-              },
-            });
+            //当当前用户id和提示更新的id相同的时候，更新自己
+            if (userId === data.response.data.id) {
+              dispatch({
+                type: 'user/save',
+                payload: {
+                  onlineState: data.response.data.status,
+                },
+              });
+            } else {
+              //其他的说明是在好友位，如果在好友位就更新，不变就不操作
+              const friendInfo = chatListMap.get(data.response.data.id);
+              if (friendInfo) {
+                const newChatList = new Map([...chatListMap]);
+                newChatList.set(data.response.data.id, {
+                  ...friendInfo,
+                  onlineStatus: data.response.data.status,
+                });
+                dispatch({
+                  type: 'message/save',
+                  payload: {
+                    chatListMap: newChatList,
+                  },
+                });
+              }
+            }
+            break;
+          }
+          case SocketActionType.ForceUserLoginOut: {
+            const user = getCurrentUser();
+            console.log('当前的用户信息', user);
+            console.log('最新的用户信息', data.response.data);
+            //当最新登录的token不一致的时候
+            if (
+              user?.token !== data.response.data.token &&
+              user?.id === data.response.data.id
+            ) {
+              message.error(data.response.message);
+              forceLogoutCurrent(socket);
+            }
+
+            break;
+          }
+          default: {
+            break;
           }
         }
       }
@@ -72,6 +127,30 @@ const BasicLayout: FC = ({ children }) => {
       },
     });
   };
+  function getCurrentUser() {
+    console.log('f方法里的user', currentUser);
+    return currentUser;
+  }
+  function forceLogoutCurrent(socket: WebSocket) {
+    socket.close();
+    // dispatch({
+    //   type: 'user/save',
+    //   payload: {
+    //     user: null,
+    //   },
+    // });
+    //清空消息数据
+    dispatch({
+      type: 'message/save',
+      payload: {
+        socket: socket,
+      },
+    });
+    //获取目前在线的用户信息不是当前用户就登出
+    dispatch({
+      type: 'user/fetchUserInfo',
+    });
+  }
   return (
     <BasicLayoutBox>
       <SiderBar />

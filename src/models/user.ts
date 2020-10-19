@@ -77,6 +77,27 @@ const UserModel: UserModelType = {
             user: null,
           },
         });
+        //清空消息数据
+        yield put({
+          type: 'message/save',
+          payload: {
+            socket: null,
+          },
+        });
+        //清除token
+        clearStorage('Authorization');
+        //跳转到登录页面
+        history.replace('/userAction/login');
+      }
+      if (result.code == 303) {
+        message.error(result.message);
+        //清空用户信息
+        yield put({
+          type: 'save',
+          payload: {
+            user: null,
+          },
+        });
         //清除token
         clearStorage('Authorization');
         //跳转到登录页面

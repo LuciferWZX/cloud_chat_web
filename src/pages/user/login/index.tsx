@@ -10,10 +10,7 @@ import PhoneForm from '@/pages/user/login/PhoneForm';
 
 const { TabPane } = Tabs;
 interface IProps {}
-const Login: FC<IProps> = props => {
-  const user = useSelector((state: ConnectState) => state.user.user);
-  console.log(22, user);
-  useWhyDidYouUpdate('为什么更新Login页面', { user, ...props });
+const Login: FC<IProps> = () => {
   return (
     <LoginBox>
       <Tabs defaultActiveKey="email">
