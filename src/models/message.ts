@@ -1,7 +1,11 @@
 import { Reducer } from 'react';
 import { MsgType, ResponseDataType } from '@/utils/constans';
 import { Effect } from '@@/plugin-dva/connect';
-import { fetchConversations, fetchFriendChatData } from '@/services/message';
+import {
+  fetchConversations,
+  fetchFriendChatData,
+  sendMessage,
+} from '@/services/message';
 import { message } from 'antd';
 import { ConnectState } from '@/models/connect';
 
@@ -14,12 +18,34 @@ interface ConversationItem {
   type: MsgType;
   createDate: string;
 }
+export interface ChatItem {
+  content: string;
+  content_type: number;
+  create_time: string;
+  creator_id: string;
+  id: number;
+  is_deleted: number;
+  is_read: number;
+  receive_id: string;
+  update_time: string;
+}
+export interface FriendInfo {
+  avatar: string;
+  chatList: Array<ChatItem>;
+  id: string;
+  inputValue: string;
+  nickname: string;
+  onlineStatus: number;
+  hasMore: boolean;
+}
 export interface MessageModelState {
   conversations: Array<ConversationItem>;
   searchFriendsValue: string;
   currentFriendId: string;
-  socket: WebSocket | null;
-  chatListMap: Map<string, any>;
+  socket: any | null;
+  chatListMap: Map<string, FriendInfo>;
+  inputValueMap: Map<string, string>;
+  newMessage: ChatItem | null;
 }
 export interface MessageModelType {
   namespace: 'message';
@@ -27,6 +53,8 @@ export interface MessageModelType {
   effects: {
     fetchConversations: Effect;
     fetchFriendChatData: Effect;
+    sendMessage: Effect;
+    insideSocket: Effect;
   };
   reducers: {
     save: Reducer<MessageModelState, any>;
@@ -52,7 +80,12 @@ const MessageModel: MessageModelType = {
     currentFriendId: '',
     //连接的socket
     socket: null,
+    //该用户所有的聊天的对象
     chatListMap: new Map(null),
+    //用户输入的map
+    inputValueMap: new Map(null),
+    //用户接受到的新消息
+    newMessage: null,
   },
   effects: {
     /**
@@ -75,6 +108,13 @@ const MessageModel: MessageModelType = {
         message.error(result.message);
       }
     },
+    /**
+     * 获取该好友的信息
+     * @param payload
+     * @param call
+     * @param put
+     * @param select
+     */
     *fetchFriendChatData({ payload }, { call, put, select }) {
       const response: ResponseDataType = yield call(
         fetchFriendChatData,
@@ -96,6 +136,30 @@ const MessageModel: MessageModelType = {
       } else if (response.code === 100) {
         message.error(response.message);
       }
+      return response.data;
+    },
+    /**
+     * 发送消息
+     * @param payload
+     * @param call
+     * @param put
+     */
+    *sendMessage({ payload }, { call, put }) {
+      const response: ResponseDataType = yield call(sendMessage, payload);
+      console.log({ 999: response });
+      if (response.code === 200) {
+        return 'success';
+      }
+      return 'failed';
+    },
+    /**
+     * socket内部获取值
+     * @param payload
+     * @param _
+     * @param select
+     */
+    *insideSocket(_, { select }) {
+      return yield select((state: any) => state.message);
     },
   },
   reducers: {

@@ -18,6 +18,7 @@ export enum MsgType {
   Video,
   File,
 }
+
 //用户的在线状态的类型
 export enum UserStateType {
   Offline,
@@ -45,6 +46,7 @@ export enum SocketActionType {
   UpdateUserOnlineStatus = 'update-online-status', //更新在线状态
   UpdateFriendOnlineStatus = 'update-online-friend-status', //更新好友在线状态
   ForceUserLoginOut = 'force-user-logout', //剔除正在登录的用户
+  ReceiveNewMessage = 'receive-new-message', //通知用户收到新的消息
 }
 //socket将进行操作的频道
 export enum SocketChannelType {

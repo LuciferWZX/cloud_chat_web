@@ -8,15 +8,17 @@ import { useMount } from 'ahooks';
 import { useDispatch, useSelector } from '@@/plugin-dva/exports';
 import { ConnectState } from '@/models/connect';
 import io from 'socket.io-client';
-import { history } from 'umi';
 import {
   SOCKET_ADDRESS,
   SocketActionType,
   SocketChannelType,
   SocketResponseType,
 } from '@/utils/constans';
-import { User } from '@/models/user';
-import { clearStorage } from '@/utils/util';
+import {
+  ChatItem,
+  MessageModelState,
+  MessageModelType,
+} from '@/models/message';
 
 notification.config({
   closeIcon: <CloseCircleFilled style={{ fontSize: 16 }} />,
@@ -24,7 +26,6 @@ notification.config({
 const BasicLayout: FC = ({ children }) => {
   //当前用户信息
   const currentUser = useSelector((state: ConnectState) => state.user.user);
-  console.log('user里面的currentuser', currentUser);
   //该用户的交流列表的好友信息及聊天列表
   const chatListMap = useSelector(
     (state: ConnectState) => state.message.chatListMap,
@@ -65,7 +66,44 @@ const BasicLayout: FC = ({ children }) => {
     socket.on('disconnect', function() {
       console.log('已断开:', socket);
     });
-    socket.on(SocketChannelType.UserActionChannel, function(response: string) {
+    socket.on(SocketActionType.ReceiveNewMessage, async (data: string) => {
+      const newMessage: ChatItem = JSON.parse(data);
+      console.log('新消息已收到', newMessage);
+      if (userId === newMessage.receive_id) {
+        console.log('该用户接收到新消息', newMessage);
+        const messageState: MessageModelState = (await dispatch({
+          type: 'message/insideSocket',
+        })) as any;
+        const { currentFriendId, chatListMap } = messageState;
+        console.log({ currentFriendId, id2: newMessage.creator_id });
+        //和该聊天好友在同一个页面
+        if (currentFriendId === newMessage.creator_id) {
+          //更新要发送的信息
+          dispatch({
+            type: 'message/save',
+            payload: {
+              newMessage,
+            },
+          });
+        }
+        // else{
+        //   const friendInfo = chatListMap.get(newMessage.creator_id);
+        //   if(friendInfo){
+        //     chatListMap.set(newMessage.creator_id,{
+        //       ...friendInfo,
+        //       chatList:friendInfo.chatList.concat(newMessage)
+        //     })
+        //     dispatch({
+        //       type:'message/save',
+        //       payload:{
+        //         chatListMap
+        //       }
+        //     })
+        //   }
+        // }
+      }
+    });
+    socket.on(SocketChannelType.UserActionChannel, (response: string) => {
       const data: SocketResponseType = JSON.parse(response);
       console.log('该用户收到消息:', data);
       if (data.response.code === 200) {
@@ -100,9 +138,9 @@ const BasicLayout: FC = ({ children }) => {
             break;
           }
           case SocketActionType.ForceUserLoginOut: {
-            const user = getCurrentUser();
-            console.log('当前的用户信息', user);
-            console.log('最新的用户信息', data.response.data);
+            const user = currentUser;
+            //console.log('当前的用户信息', user);
+            //console.log('最新的用户信息', data.response.data);
             //当最新登录的token不一致的时候
             if (
               user?.token !== data.response.data.token &&
@@ -120,6 +158,7 @@ const BasicLayout: FC = ({ children }) => {
         }
       }
     });
+
     dispatch({
       type: 'message/save',
       payload: {
@@ -127,30 +166,15 @@ const BasicLayout: FC = ({ children }) => {
       },
     });
   };
-  function getCurrentUser() {
-    console.log('f方法里的user', currentUser);
-    return currentUser;
-  }
-  function forceLogoutCurrent(socket: WebSocket) {
+
+  function forceLogoutCurrent(socket: any) {
     socket.close();
-    // dispatch({
-    //   type: 'user/save',
-    //   payload: {
-    //     user: null,
-    //   },
-    // });
-    //清空消息数据
-    dispatch({
-      type: 'message/save',
-      payload: {
-        socket: socket,
-      },
-    });
     //获取目前在线的用户信息不是当前用户就登出
     dispatch({
       type: 'user/fetchUserInfo',
     });
   }
+
   return (
     <BasicLayoutBox>
       <SiderBar />

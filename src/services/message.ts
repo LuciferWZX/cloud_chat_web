@@ -22,3 +22,19 @@ export async function fetchFriendChatData(params: {
     method: 'GET',
   });
 }
+
+/**
+ * 发送文字信息  0
+ * @param params
+ */
+export async function sendMessage(params: {
+  type: number;
+  message: string;
+  creatorId: string;
+  receiveId: string;
+}) {
+  return await request(`/message/sendMsg`, {
+    method: 'POSt',
+    data: params,
+  });
+}

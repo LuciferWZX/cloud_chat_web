@@ -1,42 +1,169 @@
-import React, { FC } from 'react';
+import React, { FC, useRef } from 'react';
 import '@chatui/core/es/styles/index.less';
 import Chat, { Bubble, useMessages } from '@chatui/core';
 import '@chatui/core/dist/index.css';
 import { ChatNavBar } from '@/components';
-import { Input } from 'antd';
 import { useDispatch, useSelector } from '@@/plugin-dva/exports';
 import { ConnectState } from '@/models/connect';
 import { useRequest, useUpdateEffect } from 'ahooks';
+import { msgKey, splitStringToArray } from '@/utils/util';
+import { ChatItem, FriendInfo } from '@/models/message';
+import { MsgType } from '@/utils/constans';
+import dayjs from 'dayjs';
+import { message } from 'antd';
+
 const ChatContainer: FC = () => {
+  const inputRef = useRef();
   //获取好友的信息及聊天记录
   const friendChatDataRequest = useRequest(fetchFriendChatData, {
     manual: true,
   });
+  //发送文字信息
+  const sendTextRequest = useRequest(sendTextMessage, {
+    manual: true,
+    fetchKey: (id: any) => id,
+  });
+
+  const { messages, appendMsg, setTyping, deleteMsg } = useMessages([]);
+
   const dispatch = useDispatch();
   //当前选中的好友的id
   const currentFriendId = useSelector(
     (state: ConnectState) => state.message.currentFriendId,
   );
+  //当前登录用户的id
   const userId = useSelector((state: ConnectState) => state.user.user?.id);
+  //当前登录的用户的头像
+  const myAvatar = useSelector(
+    (state: ConnectState) => state.user.user?.avatar,
+  );
   //当前的聊天记录的map
   const friendInfo = useSelector(
     (state: ConnectState) => state.message.chatListMap,
   ).get(currentFriendId);
+  //输入的inputMap
+  const inputValueMap = useSelector(
+    (state: ConnectState) => state.message.inputValueMap,
+  );
+  //用户接受到的新消息
+  const newMessage = useSelector(
+    (state: ConnectState) => state.message.newMessage,
+  );
+
+  const socket = useSelector((state: ConnectState) => state.message.socket);
+  //初始化信息
+  const renderInitMessage = (
+    msgInfo: {
+      currentFriendId: string;
+      friendAvatar: string;
+      myAvatar: string;
+    },
+    data: Array<ChatItem>,
+  ) => {
+    return data.map(item => {
+      // content: "这是第二句"
+      // content_type: 0
+      // create_time: "2020-10-15T18:08:35.000Z"
+      // creator_id: "6721356004241440768"
+      // id: 4
+      // is_deleted: 0
+      // is_read: 0
+      // receive_id: "6721851097633259520"
+      // update_time: "2020-10-15T18:08:35.0
+      return {
+        type: item.content_type.toString(),
+        _id: item.id,
+        position:
+          item.creator_id === msgInfo.currentFriendId ? 'left' : 'right',
+        content: {
+          //text: '主人好，我是智能助理，你的贴心小助手~',
+          [msgKey(item.content_type)]: item.content,
+        },
+        createdAt: dayjs(item.create_time).valueOf(),
+        hasTime: true,
+        user: {
+          avatar:
+            item.creator_id === msgInfo.currentFriendId
+              ? msgInfo.friendAvatar
+              : msgInfo.myAvatar,
+        },
+      };
+    });
+  };
+
+  //当依赖更新的时候触发
   useUpdateEffect(() => {
     if (currentFriendId !== '') {
+      //切换好友，先清空好友聊天记录
+      clearMessage();
+      if (inputRef.current) {
+        // @ts-ignore
+        inputRef.current.setText(inputValueMap.get(currentFriendId) || '');
+      }
       //获取好友信息
       (async function() {
-        await friendChatDataRequest.run(currentFriendId, userId as string);
+        const data: FriendInfo = await friendChatDataRequest.run(
+          currentFriendId,
+          userId as string,
+        );
+        const msgList: any = renderInitMessage(
+          {
+            currentFriendId,
+            friendAvatar: data.avatar,
+            myAvatar: myAvatar || '',
+          },
+          data.chatList,
+        );
+        for (let i = 0; i < msgList.length; i++) {
+          appendMsg(msgList[i]);
+        }
       })();
     }
   }, [currentFriendId]);
+  useUpdateEffect(() => {
+    if (newMessage) {
+      console.log('该用户开始更新消息');
+      appendMsg({
+        type: newMessage.content_type.toString(),
+        //_id:item.id,
+        position: 'left',
+        content: {
+          //text: '主人好，我是智能助理，你的贴心小助手~',
+          [msgKey(newMessage.content_type)]: newMessage.content,
+        },
+        createdAt: dayjs(newMessage.create_time).valueOf(),
+        hasTime: true,
+        user: {
+          avatar: (friendInfo && friendInfo.avatar) || '',
+        },
+      });
+    }
+  }, [newMessage]);
   //获取好友的信息
-  async function fetchFriendChatData(friendId: string, userId: string) {
+  function fetchFriendChatData(friendId: string, userId: string) {
     return dispatch({
       type: 'message/fetchFriendChatData',
       payload: {
         friendId: friendId,
         id: userId,
+      },
+    });
+  }
+  //发送文字信息
+  function sendTextMessage(
+    type: number,
+    message: string,
+    creatorId: string,
+    receiveId: string,
+    index: number,
+  ) {
+    return dispatch({
+      type: 'message/sendMessage',
+      payload: {
+        type,
+        message,
+        creatorId,
+        receiveId,
       },
     });
   }
@@ -77,8 +204,6 @@ const ChatContainer: FC = () => {
       name: '短语3',
     },
   ];
-  // 消息列表
-  const { messages, appendMsg, setTyping } = useMessages(initialMessages);
   // 快捷短语回调，可根据 item 数据做出不同的操作，这里以发送文本消息为例
   function handleQuickReplyClick(item: any) {
     handleSend('text', item.name);
@@ -108,13 +233,13 @@ const ChatContainer: FC = () => {
     const { type, content } = msg;
 
     // 根据消息类型来渲染
-    switch (type) {
-      case 'text':
-        return <Bubble content={content.text} />;
-      case 'image':
+    switch (parseInt(type)) {
+      case MsgType.Message:
+        return <Bubble content={content[msgKey(parseInt(type))]} />;
+      case MsgType.Image:
         return (
           <Bubble type="image">
-            <img src={content.picUrl} alt="" />
+            <img src={content[msgKey(parseInt(type))]} alt="img" />
           </Bubble>
         );
       default:
@@ -137,21 +262,134 @@ const ChatContainer: FC = () => {
     return null;
   };
   //上方点击加载更多
-  const loadMoreMsg = () => {
-    console.log('触发onRefresh');
+  const loadMoreMsg = async () => {
+    if (friendInfo && friendInfo.hasMore) {
+      return new Promise<any>((resolve, reject) => {
+        console.log('触发onRefresh');
+        resolve('sss');
+      });
+    }
+    return undefined;
+  };
+  //清空当前聊天记录
+  const clearMessage = async () => {
+    if (messages.length > 0) {
+      for (let i = 0; i < messages.length; i++) {
+        deleteMsg(messages[i]._id);
+      }
+    }
+  };
+  //输入框输入
+  const changeInput = (text: string) => {
+    let temp = new Map(inputValueMap);
+    temp.set(currentFriendId, text);
+    dispatch({
+      type: 'message/save',
+      payload: {
+        inputValueMap: temp,
+      },
+    });
+  };
+  //发送消息
+  const sendMsg = (type: string, val: any) => {
+    console.log({ type, val });
+    if (type === 'text' && val.trim()) {
+      //状态显示正在发送
+      setTyping(true);
+      const msgArr = splitStringToArray(val, 255).map((msg, index) => {
+        return {
+          index: index,
+          message: msg,
+        };
+      });
+      for (let i = 0; i < msgArr.length; i++) {
+        sendTextRequest
+          .run(
+            0,
+            msgArr[i].message,
+            userId || '',
+            currentFriendId,
+            msgArr[i].index,
+          )
+          .then((result: 'success' | 'failed') => {
+            if (result === 'success') {
+              // if(socket){
+              //   socket.emit('')
+              // }
+              appendMsg({
+                type: MsgType.Message.toString(),
+                //_id:item.id,
+                position: 'right',
+                content: {
+                  //text: '主人好，我是智能助理，你的贴心小助手~',
+                  [msgKey(MsgType.Message)]: msgArr[i].message,
+                },
+                createdAt: dayjs().valueOf(),
+                hasTime: true,
+                user: {
+                  avatar: myAvatar || '',
+                },
+              });
+            } else {
+              message.error('发送失败');
+              setTyping(false);
+            }
+          });
+      }
+      // TODO: 发送请求
+      // sendTextRequest.run(0, val, userId || "", currentFriendId).then ((result:"success"|"failed") =>{
+      //   if (result === "success"){
+      //     appendMsg({
+      //       type: MsgType.Message.toString(),
+      //       //_id:item.id,
+      //       position:"right",
+      //       content: {
+      //         //text: '主人好，我是智能助理，你的贴心小助手~',
+      //         [msgKey(MsgType.Message)]:val
+      //       },
+      //       createdAt:dayjs().valueOf(),
+      //       hasTime:true,
+      //       user: {
+      //         avatar: myAvatar||"",
+      //       },
+      //     });
+      //   }else{
+      //     message.error("发送失败");
+      //     setTyping(false);
+      //   }
+      // })
+
+      // appendMsg({
+      //   type: 'text',
+      //   content: { text: val },
+      //   position: 'right',
+      // });
+
+      // 模拟回复消息
+      // setTimeout(() => {
+      //   appendMsg({
+      //     type: 'text',
+      //     content: { text: '亲，您遇到什么问题啦？请简要描述您的问题~' },
+      //   });
+      // }, 1000);
+    }
   };
   return (
     <div style={{ flex: 1 }}>
       <Chat
-        //onRefresh={loadMoreMsg}
+        onRefresh={loadMoreMsg}
+        loadMoreText={friendInfo && friendInfo.hasMore ? '点击加载' : ''}
+        text={friendInfo && friendInfo.inputValue}
+        onInputChange={changeInput as any}
         messages={messages}
         renderNavbar={renderNavbar}
-        inputType={'text'}
+        //inputType={'text'}
+        composerRef={inputRef}
         //renderAccessory={<div>wwww</div>}
         renderMessageContent={renderMessageContent}
         quickReplies={defaultQuickReplies}
         onQuickReplyClick={handleQuickReplyClick}
-        onSend={handleSend}
+        onSend={sendMsg}
         //Composer={"<input/>"}
       />
     </div>
