@@ -10,6 +10,10 @@ export default defineConfig({
   define: {
     'process.env.UMI_ENV_VAR': 'DEV',
   },
+  headScripts: [
+    //ChatUI图标
+    `//g.alicdn.com/chatui/icons/0.2.7/index.js`,
+  ],
   locale: {
     default: 'zh-CN',
     antd: true,

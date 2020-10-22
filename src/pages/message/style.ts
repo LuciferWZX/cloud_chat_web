@@ -39,5 +39,16 @@ const ContactListBox = styled(Scrollbars)`
     }
   }
 `;
-
-export { MessagePageBox, ContactBox, ContactSearchBarBox, ContactListBox };
+const ContactContainerBox = styled.div`
+  flex: 1;
+  .Message.right .Bubble {
+    background: url('https://gw.alicdn.com/tfs/TB1HURhcBCw3KVjSZR0XXbcUpXa-750-364.png');
+  }
+`;
+export {
+  MessagePageBox,
+  ContactBox,
+  ContactSearchBarBox,
+  ContactListBox,
+  ContactContainerBox,
+};

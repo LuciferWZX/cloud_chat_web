@@ -4,7 +4,7 @@ import { CloseCircleFilled } from '@ant-design/icons';
 import { BasicLayoutBox, ChildrenBox } from '@/layouts/basicLayout/style';
 import SiderBar from '@/layouts/basicLayout/SiderBar';
 import { GlobalStyle } from '@/layouts/globalStyle';
-import { useMount } from 'ahooks';
+import { useMount, useUnmount } from 'ahooks';
 import { useDispatch, useSelector } from '@@/plugin-dva/exports';
 import { ConnectState } from '@/models/connect';
 import io from 'socket.io-client';
@@ -26,6 +26,8 @@ notification.config({
 const BasicLayout: FC = ({ children }) => {
   //当前用户信息
   const currentUser = useSelector((state: ConnectState) => state.user.user);
+  //当前的socket
+  const cSocket = useSelector((state: ConnectState) => state.message.socket);
   //该用户的交流列表的好友信息及聊天列表
   const chatListMap = useSelector(
     (state: ConnectState) => state.message.chatListMap,
@@ -34,7 +36,7 @@ const BasicLayout: FC = ({ children }) => {
   const dispatch = useDispatch();
   //刚进入主页面
   useMount(() => {
-    if (currentUser) {
+    if (currentUser && !cSocket) {
       initSocket(currentUser.id);
     }
   });
@@ -74,7 +76,7 @@ const BasicLayout: FC = ({ children }) => {
         const messageState: MessageModelState = (await dispatch({
           type: 'message/insideSocket',
         })) as any;
-        const { currentFriendId, chatListMap } = messageState;
+        const { currentFriendId } = messageState;
         console.log({ currentFriendId, id2: newMessage.creator_id });
         //和该聊天好友在同一个页面
         if (currentFriendId === newMessage.creator_id) {
@@ -174,7 +176,18 @@ const BasicLayout: FC = ({ children }) => {
       type: 'user/fetchUserInfo',
     });
   }
-
+  useUnmount(() => {
+    if (cSocket) {
+      //关闭socket
+      cSocket.close();
+      dispatch({
+        type: 'save/message',
+        payload: {
+          socket: null,
+        },
+      });
+    }
+  });
   return (
     <BasicLayoutBox>
       <SiderBar />

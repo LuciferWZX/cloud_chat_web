@@ -1,12 +1,13 @@
+import { URL_ADDRESS } from '@/utils/constans';
 export default {
   dev: {
     '/user/': {
-      target: 'http://localhost:3000/user',
+      target: `${URL_ADDRESS}/user`,
       changeOrigin: true,
       pathRewrite: { '^/user/': '' },
     },
     '/message/': {
-      target: 'http://localhost:3000/message',
+      target: `${URL_ADDRESS}/message`,
       changeOrigin: true,
       pathRewrite: { '^/message/': '' },
     },

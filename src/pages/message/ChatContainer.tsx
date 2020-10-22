@@ -11,6 +11,8 @@ import { ChatItem, FriendInfo } from '@/models/message';
 import { MsgType } from '@/utils/constans';
 import dayjs from 'dayjs';
 import { message } from 'antd';
+import { CloseCircleOutlined } from '@ant-design/icons';
+import { ContactContainerBox } from '@/pages/message/style';
 
 const ChatContainer: FC = () => {
   const inputRef = useRef();
@@ -24,7 +26,13 @@ const ChatContainer: FC = () => {
     fetchKey: (id: any) => id,
   });
 
-  const { messages, appendMsg, setTyping, deleteMsg } = useMessages([]);
+  const {
+    messages,
+    appendMsg,
+    setTyping,
+    deleteMsg,
+    prependMsgs,
+  } = useMessages([]);
 
   const dispatch = useDispatch();
   //当前选中的好友的id
@@ -79,7 +87,7 @@ const ChatContainer: FC = () => {
           //text: '主人好，我是智能助理，你的贴心小助手~',
           [msgKey(item.content_type)]: item.content,
         },
-        createdAt: dayjs(item.create_time).valueOf(),
+        createdAt: dayjs().valueOf(),
         hasTime: true,
         user: {
           avatar:
@@ -114,9 +122,10 @@ const ChatContainer: FC = () => {
           },
           data.chatList,
         );
-        for (let i = 0; i < msgList.length; i++) {
-          appendMsg(msgList[i]);
-        }
+        prependMsgs(msgList);
+        // for (let i = 0; i < msgList.length; i++) {
+        //   appendMsg(msgList[i]);
+        // }
       })();
     }
   }, [currentFriendId]);
@@ -272,7 +281,7 @@ const ChatContainer: FC = () => {
     return undefined;
   };
   //清空当前聊天记录
-  const clearMessage = async () => {
+  const clearMessage = () => {
     if (messages.length > 0) {
       for (let i = 0; i < messages.length; i++) {
         deleteMsg(messages[i]._id);
@@ -375,24 +384,51 @@ const ChatContainer: FC = () => {
     }
   };
   return (
-    <div style={{ flex: 1 }}>
-      <Chat
-        onRefresh={loadMoreMsg}
-        loadMoreText={friendInfo && friendInfo.hasMore ? '点击加载' : ''}
-        text={friendInfo && friendInfo.inputValue}
-        onInputChange={changeInput as any}
-        messages={messages}
-        renderNavbar={renderNavbar}
-        //inputType={'text'}
-        composerRef={inputRef}
-        //renderAccessory={<div>wwww</div>}
-        renderMessageContent={renderMessageContent}
-        quickReplies={defaultQuickReplies}
-        onQuickReplyClick={handleQuickReplyClick}
-        onSend={sendMsg}
-        //Composer={"<input/>"}
-      />
-    </div>
+    <ContactContainerBox>
+      {friendInfo && (
+        <Chat
+          onRefresh={loadMoreMsg}
+          loadMoreText={friendInfo && friendInfo.hasMore ? '点击加载' : ''}
+          text={friendInfo && friendInfo.inputValue}
+          onInputChange={changeInput as any}
+          messages={messages}
+          renderNavbar={renderNavbar}
+          //inputType={'text'}
+          composerRef={inputRef}
+          toolbar={[
+            {
+              type: '1',
+              icon: 'image',
+              title: '图片',
+              //icon?: string,
+              //img?: string,
+              //render:
+            },
+            {
+              type: '2',
+              icon: 'video',
+              title: '视频',
+              //icon?: string,
+              //img?: string,
+              //render:<div>+</div>
+            },
+            {
+              type: '2',
+              icon: 'file',
+              title: '文件',
+              //icon?: string,
+              //img?: string,
+              //render:<div>+</div>
+            },
+          ]}
+          renderMessageContent={renderMessageContent}
+          quickReplies={defaultQuickReplies}
+          onQuickReplyClick={handleQuickReplyClick}
+          onSend={sendMsg}
+          //Composer={"<input/>"}
+        />
+      )}
+    </ContactContainerBox>
   );
 };
 export default ChatContainer;
