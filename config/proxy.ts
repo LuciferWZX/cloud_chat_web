@@ -1,4 +1,5 @@
-import { URL_ADDRESS } from '@/utils/constans';
+//const URL_ADDRESS = 'http://192.168.99.173:3000';
+const URL_ADDRESS = 'http://localhost:3000';
 export default {
   dev: {
     '/user/': {

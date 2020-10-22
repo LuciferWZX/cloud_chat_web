@@ -35,9 +35,8 @@ export const userStateText = {
   [UserStateType.Online]: '在线',
 };
 //socket连接地址
-export const SOCKET_ADDRESS = 'http://192.168.99.173:3000';
-//接口连接地址
-export const URL_ADDRESS = 'http://192.168.99.173:3000';
+export const SOCKET_ADDRESS = 'http://localhost:3000';
+
 //socket返回的数据结构的类型
 export interface SocketResponseType {
   actionType: string;

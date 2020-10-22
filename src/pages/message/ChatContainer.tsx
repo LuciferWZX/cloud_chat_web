@@ -58,7 +58,6 @@ const ChatContainer: FC = () => {
     (state: ConnectState) => state.message.newMessage,
   );
 
-  const socket = useSelector((state: ConnectState) => state.message.socket);
   //初始化信息
   const renderInitMessage = (
     msgInfo: {
@@ -123,6 +122,7 @@ const ChatContainer: FC = () => {
           data.chatList,
         );
         prependMsgs(msgList);
+
         // for (let i = 0; i < msgList.length; i++) {
         //   appendMsg(msgList[i]);
         // }
@@ -383,51 +383,50 @@ const ChatContainer: FC = () => {
       // }, 1000);
     }
   };
+
   return (
     <ContactContainerBox>
-      {friendInfo && (
-        <Chat
-          onRefresh={loadMoreMsg}
-          loadMoreText={friendInfo && friendInfo.hasMore ? '点击加载' : ''}
-          text={friendInfo && friendInfo.inputValue}
-          onInputChange={changeInput as any}
-          messages={messages}
-          renderNavbar={renderNavbar}
-          //inputType={'text'}
-          composerRef={inputRef}
-          toolbar={[
-            {
-              type: '1',
-              icon: 'image',
-              title: '图片',
-              //icon?: string,
-              //img?: string,
-              //render:
-            },
-            {
-              type: '2',
-              icon: 'video',
-              title: '视频',
-              //icon?: string,
-              //img?: string,
-              //render:<div>+</div>
-            },
-            {
-              type: '2',
-              icon: 'file',
-              title: '文件',
-              //icon?: string,
-              //img?: string,
-              //render:<div>+</div>
-            },
-          ]}
-          renderMessageContent={renderMessageContent}
-          quickReplies={defaultQuickReplies}
-          onQuickReplyClick={handleQuickReplyClick}
-          onSend={sendMsg}
-          //Composer={"<input/>"}
-        />
-      )}
+      <Chat
+        onRefresh={loadMoreMsg}
+        loadMoreText={friendInfo && friendInfo.hasMore ? '点击加载' : ''}
+        text={friendInfo && friendInfo.inputValue}
+        onInputChange={changeInput as any}
+        messages={messages}
+        renderNavbar={renderNavbar}
+        //inputType={'text'}
+        composerRef={inputRef}
+        toolbar={[
+          {
+            type: '1',
+            icon: 'image',
+            title: '图片',
+            //icon?: string,
+            //img?: string,
+            //render:
+          },
+          {
+            type: '2',
+            icon: 'phone',
+            title: '视频',
+            //icon?: string,
+            //img?: string,
+            //render:<div>+</div>
+          },
+          {
+            type: '3',
+            icon: 'file',
+            title: '文件',
+            //icon?: string,
+            //img?: string,
+            //render:<div>+</div>
+          },
+        ]}
+        renderMessageContent={renderMessageContent}
+        //quickReplies={defaultQuickReplies} //会造成内存溢出
+        onQuickReplyClick={handleQuickReplyClick}
+        onSend={sendMsg}
+        //Composer={"<input/>"}
+      />
     </ContactContainerBox>
   );
 };

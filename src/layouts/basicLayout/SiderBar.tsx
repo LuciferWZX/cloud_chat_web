@@ -1,15 +1,25 @@
 import React, { FC, useState } from 'react';
-import { SiderBarBox, SiderMenuBox } from '@/layouts/basicLayout/style';
+import {
+  SiderBarBox,
+  SiderItem,
+  SiderMenuBox,
+} from '@/layouts/basicLayout/style';
 import { Avatar, Badge, Divider, Dropdown, Menu } from 'antd';
-import { useSelector } from '@@/plugin-dva/exports';
+import { useDispatch, useSelector } from '@@/plugin-dva/exports';
 import { ConnectState } from '@/models/connect';
-import { useWhyDidYouUpdate } from 'ahooks';
+import { useRequest, useWhyDidYouUpdate } from 'ahooks';
 import { history, useLocation, matchPath } from 'umi';
 import classnames from 'classnames';
 import { LogoutOutlined, SettingFilled } from '@ant-design/icons';
 import { userStateColor, userStateText } from '@/utils/constans';
 const { SubMenu } = Menu;
 const SiderBar: FC = () => {
+  const dispatch = useDispatch();
+  //登出的请求
+  const logoutRequest = useRequest(logout, {
+    manual: true,
+    loadingDelay: 1200,
+  });
   const nickname = useSelector(
     (state: ConnectState) => state.user.user?.nickname,
   );
@@ -27,7 +37,11 @@ const SiderBar: FC = () => {
   const changeMenu = (path: string) => {
     history.push(path);
   };
-
+  function logout() {
+    return dispatch({
+      type: 'user/logout',
+    });
+  }
   const renderMenu = () => {
     const location = useLocation();
 
@@ -42,29 +56,33 @@ const SiderBar: FC = () => {
       });
       const Icon = require('@ant-design/icons')[item.icon];
       return (
-        <Badge key={item.path} count={item.badge} offset={[0, 20]}>
-          <a
+        <Badge key={item.path} count={item.badge}>
+          <SiderItem
             onClick={() => changeMenu(item.path)}
             className={classnames({
+              'sider-item': true,
               active: active,
             })}
           >
-            <div className="layer">
-              <span />
-              <span />
-              <span />
-              <span />
-
-              <Icon className={'fab'} />
-            </div>
+            <Icon className={'menu-icon'} />
             <span className="text">{item.name}</span>
-          </a>
+          </SiderItem>
         </Badge>
       );
     });
   };
+  const clickAvatarMenu = (e: any) => {
+    switch (e.key) {
+      case 'logout': {
+        setTimeout(() => {
+          logoutRequest.run();
+        }, 300);
+        break;
+      }
+    }
+  };
   const menu = (
-    <Menu>
+    <Menu onClick={clickAvatarMenu}>
       <SubMenu
         title={
           <Badge
@@ -78,13 +96,25 @@ const SiderBar: FC = () => {
           />
         }
       >
-        <Menu.Item style={{ width: 100 }}>隐身</Menu.Item>
-        <Menu.Item style={{ width: 100 }}>离线</Menu.Item>
+        <Menu.Item key={'hide'} style={{ width: 100 }}>
+          隐身
+        </Menu.Item>
+        <Menu.Item key={'offline'} style={{ width: 100 }}>
+          离线
+        </Menu.Item>
       </SubMenu>
-      <Menu.Item></Menu.Item>
-      <Menu.Item icon={<SettingFilled />}>用户设置</Menu.Item>
+
+      <Menu.Item key={'setting'} icon={<SettingFilled />}>
+        用户设置
+      </Menu.Item>
       <Menu.Divider />
-      <Menu.Item icon={<LogoutOutlined />} danger>
+      <Menu.Item
+        key={'logout'}
+        onClick={() => logoutRequest.run}
+        disabled={logoutRequest.loading}
+        icon={<LogoutOutlined />}
+        danger
+      >
         退出登录
       </Menu.Item>
     </Menu>

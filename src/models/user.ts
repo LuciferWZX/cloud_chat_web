@@ -4,6 +4,7 @@ import { history } from 'umi';
 import {
   emailLogin,
   fetchUser,
+  logout,
   registerUserByEmail,
   sendVerifyToEmail,
 } from '@/services/user';
@@ -37,6 +38,7 @@ export interface UserModelType {
     registerUserByEmail: Effect;
     sendVerifyToEmail: Effect;
     emailLogin: Effect;
+    logout: Effect;
   };
   reducers: {
     save: Reducer<UserModelState, any>;
@@ -157,6 +159,29 @@ const UserModel: UserModelType = {
       }
       if (result.code === 202) {
         message.error(result.message);
+      }
+    },
+    /**
+     * 用户退出登录
+     * @param _
+     * @param call
+     * @param put
+     */
+    *logout(_, { call, put }) {
+      const response: ResponseDataType = yield call(logout);
+      if (response.code === 200) {
+        clearStorage('Authorization');
+        history.replace('/userAction/login');
+        yield put({
+          type: 'save',
+          payload: {
+            user: null,
+            onlineState: 0,
+          },
+        });
+      }
+      if (response.code === 100) {
+        message.error(response.message);
       }
     },
   },

@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, memo } from 'react';
 import { ContactItem } from '@/components';
 import { ContactListBox } from '@/pages/message/style';
 import { useDispatch, useSelector } from '@@/plugin-dva/exports';
@@ -68,4 +68,5 @@ const ContactList: FC = () => {
     </ContactListBox>
   );
 };
+
 export default ContactList;

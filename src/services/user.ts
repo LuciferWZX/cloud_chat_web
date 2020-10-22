@@ -10,6 +10,14 @@ export async function fetchUser() {
 }
 
 /**
+ * 退出登录
+ */
+export async function logout() {
+  return await request('/user/logout', {
+    method: 'GET',
+  });
+}
+/**
  * 使用邮箱注册用户
  * @param params
  */

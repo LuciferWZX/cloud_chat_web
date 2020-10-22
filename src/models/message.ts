@@ -101,6 +101,8 @@ const MessageModel: MessageModelType = {
           type: 'save',
           payload: {
             conversations: result.data,
+            currentFriendId:
+              result.data.length > 0 ? result.data[0].friendId : '',
           },
         });
       }
