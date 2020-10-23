@@ -172,13 +172,6 @@ const UserModel: UserModelType = {
       if (response.code === 200) {
         clearStorage('Authorization');
         history.replace('/userAction/login');
-        yield put({
-          type: 'save',
-          payload: {
-            user: null,
-            onlineState: 0,
-          },
-        });
       }
       if (response.code === 100) {
         message.error(response.message);

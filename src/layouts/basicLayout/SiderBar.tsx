@@ -7,13 +7,21 @@ import {
 import { Avatar, Badge, Divider, Dropdown, Menu } from 'antd';
 import { useDispatch, useSelector } from '@@/plugin-dva/exports';
 import { ConnectState } from '@/models/connect';
-import { useRequest, useWhyDidYouUpdate } from 'ahooks';
+import { useMount, useRequest } from 'ahooks';
 import { history, useLocation, matchPath } from 'umi';
 import classnames from 'classnames';
 import { LogoutOutlined, SettingFilled } from '@ant-design/icons';
 import { userStateColor, userStateText } from '@/utils/constans';
+import useSiderBarAnime from '@/hooks/useSiderBarAnime';
 const { SubMenu } = Menu;
 const SiderBar: FC = () => {
+  useMount(() => {
+    //菜单的动画
+    useSiderBarAnime({
+      targets: ['.sider-item', '.avatar-box'],
+      translateX: [-100, 0],
+    });
+  });
   const dispatch = useDispatch();
   //登出的请求
   const logoutRequest = useRequest(logout, {
@@ -56,18 +64,19 @@ const SiderBar: FC = () => {
       });
       const Icon = require('@ant-design/icons')[item.icon];
       return (
-        <Badge key={item.path} count={item.badge}>
-          <SiderItem
-            onClick={() => changeMenu(item.path)}
-            className={classnames({
-              'sider-item': true,
-              active: active,
-            })}
-          >
+        <SiderItem
+          key={item.path}
+          onClick={() => changeMenu(item.path)}
+          className={classnames({
+            'sider-item': true,
+            active: active,
+          })}
+        >
+          <Badge count={item.badge}>
             <Icon className={'menu-icon'} />
-            <span className="text">{item.name}</span>
-          </SiderItem>
-        </Badge>
+          </Badge>
+          <span className="text">{item.name}</span>
+        </SiderItem>
       );
     });
   };

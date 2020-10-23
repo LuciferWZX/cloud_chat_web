@@ -5,6 +5,7 @@ import {
   fetchConversations,
   fetchFriendChatData,
   sendMessage,
+  updateMessageReadStatus,
 } from '@/services/message';
 import { message } from 'antd';
 import { ConnectState } from '@/models/connect';
@@ -55,6 +56,7 @@ export interface MessageModelType {
     fetchFriendChatData: Effect;
     sendMessage: Effect;
     insideSocket: Effect;
+    updateMessageReadStatus: Effect;
   };
   reducers: {
     save: Reducer<MessageModelState, any>;
@@ -137,6 +139,7 @@ const MessageModel: MessageModelType = {
         });
       } else if (response.code === 100) {
         message.error(response.message);
+        return [];
       }
       return response.data;
     },
@@ -145,10 +148,30 @@ const MessageModel: MessageModelType = {
      * @param payload
      * @param call
      * @param put
+     * @param select
      */
-    *sendMessage({ payload }, { call, put }) {
+    *sendMessage({ payload }, { call, put, select }) {
       const response: ResponseDataType = yield call(sendMessage, payload);
-      console.log({ 999: response });
+      const conversations = yield select(
+        (state: ConnectState) => state.message.conversations,
+      );
+      yield put({
+        type: 'save',
+        payload: {
+          conversations: conversations.map((item: ConversationItem) => {
+            if (response.data.receive_id === item.friendId) {
+              return {
+                ...item,
+                createDate: response.data.create_time,
+                type: response.data.content_type,
+                content: response.data.content,
+              };
+            }
+            return item;
+          }),
+        },
+      });
+
       if (response.code === 200) {
         return 'success';
       }
@@ -162,6 +185,41 @@ const MessageModel: MessageModelType = {
      */
     *insideSocket(_, { select }) {
       return yield select((state: any) => state.message);
+    },
+    /**
+     * 更新朋友的所有消息改成已读
+     * @param payload
+     * @param call
+     * @param put
+     * @param select
+     */
+    *updateMessageReadStatus({ payload }, { call, put, select }) {
+      const result: ResponseDataType = yield call(
+        updateMessageReadStatus,
+        payload,
+      );
+      if (result.code === 200) {
+        const conversations = yield select(
+          (state: ConnectState) => state.message.conversations,
+        );
+        yield put({
+          type: 'save',
+          payload: {
+            conversations: conversations.map((item: ConversationItem) => {
+              if (payload.ids.indexOf(item.friendId) > -1) {
+                return {
+                  ...item,
+                  unRead: 0,
+                };
+              }
+              return item;
+            }),
+          },
+        });
+      }
+      if (result.code === 100) {
+        message.error(result.message);
+      }
     },
   },
   reducers: {

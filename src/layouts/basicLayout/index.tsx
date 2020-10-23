@@ -14,11 +14,7 @@ import {
   SocketChannelType,
   SocketResponseType,
 } from '@/utils/constans';
-import {
-  ChatItem,
-  MessageModelState,
-  MessageModelType,
-} from '@/models/message';
+import { ChatItem, MessageModelState } from '@/models/message';
 
 notification.config({
   closeIcon: <CloseCircleFilled style={{ fontSize: 16 }} />,
@@ -50,7 +46,6 @@ const BasicLayout: FC = ({ children }) => {
       },
     };
     const socket = io(SOCKET_ADDRESS, socketConfig);
-
     socket.on('connect', function() {
       console.log('已连接:', socket.id);
       //通知已经登录的下线
@@ -71,13 +66,13 @@ const BasicLayout: FC = ({ children }) => {
     socket.on(SocketActionType.ReceiveNewMessage, async (data: string) => {
       const newMessage: ChatItem = JSON.parse(data);
       console.log('新消息已收到', newMessage);
+      //说明是对方发给我的
       if (userId === newMessage.receive_id) {
         console.log('该用户接收到新消息', newMessage);
         const messageState: MessageModelState = (await dispatch({
           type: 'message/insideSocket',
         })) as any;
-        const { currentFriendId } = messageState;
-        console.log({ currentFriendId, id2: newMessage.creator_id });
+        const { currentFriendId, conversations } = messageState;
         //和该聊天好友在同一个页面
         if (currentFriendId === newMessage.creator_id) {
           //更新要发送的信息
@@ -85,24 +80,49 @@ const BasicLayout: FC = ({ children }) => {
             type: 'message/save',
             payload: {
               newMessage,
+              //接受者更新conversation,两人不在同一面，这时不需要更新unRead数
+              conversations: conversations.map(item => {
+                if (newMessage.creator_id === item.friendId) {
+                  return {
+                    ...item,
+                    createDate: newMessage.create_time,
+                    type: newMessage.content_type,
+                    content: newMessage.content,
+                  };
+                }
+                return item;
+              }),
+            },
+          });
+          //收到新的消息，并且已经看了
+          // dispatch({
+          //   type: 'message/updateMessageReadStatus',
+          //   payload: {
+          //     dependFriendId:false,
+          //     ids:[newMessage.id]
+          //   },
+          // });
+        } else {
+          //说明当前的好友不是发送消息的好友，这时候conversation列表更新一条数据 content , time ,count+1
+          //接受者更新conversation,两人不在同一面，unRead数+1
+          dispatch({
+            type: 'message/save',
+            payload: {
+              conversations: conversations.map(item => {
+                if (newMessage.creator_id === item.friendId) {
+                  return {
+                    ...item,
+                    createDate: newMessage.create_time,
+                    type: newMessage.content_type,
+                    content: newMessage.content,
+                    unRead: item.unRead + 1,
+                  };
+                }
+                return item;
+              }),
             },
           });
         }
-        // else{
-        //   const friendInfo = chatListMap.get(newMessage.creator_id);
-        //   if(friendInfo){
-        //     chatListMap.set(newMessage.creator_id,{
-        //       ...friendInfo,
-        //       chatList:friendInfo.chatList.concat(newMessage)
-        //     })
-        //     dispatch({
-        //       type:'message/save',
-        //       payload:{
-        //         chatListMap
-        //       }
-        //     })
-        //   }
-        // }
       }
     });
     socket.on(SocketChannelType.UserActionChannel, (response: string) => {

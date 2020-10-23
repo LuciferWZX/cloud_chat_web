@@ -48,6 +48,8 @@ export enum SocketActionType {
   UpdateFriendOnlineStatus = 'update-online-friend-status', //更新好友在线状态
   ForceUserLoginOut = 'force-user-logout', //剔除正在登录的用户
   ReceiveNewMessage = 'receive-new-message', //通知用户收到新的消息
+  UpdateConversation = 'update-conversation', //通知更新一条conversation
+  UpdateMsgIsRead = 'update-msg-isRead', //将消息更新成已读
 }
 //socket将进行操作的频道
 export enum SocketChannelType {

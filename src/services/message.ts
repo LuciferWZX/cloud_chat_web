@@ -38,3 +38,18 @@ export async function sendMessage(params: {
     data: params,
   });
 }
+
+/**
+ * 更新消息成已读或者未读
+ * @param params
+ */
+export async function updateMessageReadStatus(params: {
+  receiveId: number;
+  dependFriendId: boolean; //是否更具好友id去更新
+  ids: Array<number | string>;
+}) {
+  return await request(`/message/updateMessages`, {
+    method: 'POSt',
+    data: params,
+  });
+}

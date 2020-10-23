@@ -12,6 +12,7 @@ const LoginLayoutAuth: FC = ({ children }) => {
         type: 'user/save',
         payload: {
           user: null,
+          onlineState: 0,
         },
       });
     }

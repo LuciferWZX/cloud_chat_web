@@ -11,7 +11,6 @@ import { ChatItem, FriendInfo } from '@/models/message';
 import { MsgType } from '@/utils/constans';
 import dayjs from 'dayjs';
 import { message } from 'antd';
-import { CloseCircleOutlined } from '@ant-design/icons';
 import { ContactContainerBox } from '@/pages/message/style';
 
 const ChatContainer: FC = () => {
@@ -24,6 +23,10 @@ const ChatContainer: FC = () => {
   const sendTextRequest = useRequest(sendTextMessage, {
     manual: true,
     fetchKey: (id: any) => id,
+  });
+  //更新当前打开的好友的所有消息状态变成已读
+  const updateMessageReadStatusRequest = useRequest(updateMessageReadStatus, {
+    manual: true,
   });
 
   const {
@@ -58,7 +61,7 @@ const ChatContainer: FC = () => {
     (state: ConnectState) => state.message.newMessage,
   );
 
-  //初始化信息
+  //格式化初始化消息
   const renderInitMessage = (
     msgInfo: {
       currentFriendId: string;
@@ -86,7 +89,7 @@ const ChatContainer: FC = () => {
           //text: '主人好，我是智能助理，你的贴心小助手~',
           [msgKey(item.content_type)]: item.content,
         },
-        createdAt: dayjs().valueOf(),
+        createdAt: dayjs(item.create_time).valueOf(),
         hasTime: true,
         user: {
           avatar:
@@ -98,9 +101,9 @@ const ChatContainer: FC = () => {
     });
   };
 
-  //当依赖更新的时候触发
+  //当依赖更新的时候触发，获取当前好友的数据，并且将当前好友的未读数变成已读的
   useUpdateEffect(() => {
-    if (currentFriendId !== '') {
+    if (currentFriendId !== '' && userId) {
       //切换好友，先清空好友聊天记录
       clearMessage();
       if (inputRef.current) {
@@ -111,8 +114,10 @@ const ChatContainer: FC = () => {
       (async function() {
         const data: FriendInfo = await friendChatDataRequest.run(
           currentFriendId,
-          userId as string,
+          userId,
         );
+        //更新消息
+        await updateMessageReadStatusRequest.run(currentFriendId, userId, true);
         const msgList: any = renderInitMessage(
           {
             currentFriendId,
@@ -121,6 +126,7 @@ const ChatContainer: FC = () => {
           },
           data.chatList,
         );
+
         prependMsgs(msgList);
 
         // for (let i = 0; i < msgList.length; i++) {
@@ -129,9 +135,9 @@ const ChatContainer: FC = () => {
       })();
     }
   }, [currentFriendId]);
+  //新消息来的时候插入新的消息
   useUpdateEffect(() => {
     if (newMessage) {
-      console.log('该用户开始更新消息');
       appendMsg({
         type: newMessage.content_type.toString(),
         //_id:item.id,
@@ -158,6 +164,20 @@ const ChatContainer: FC = () => {
       },
     });
   }
+  function updateMessageReadStatus(
+    friendId: string,
+    receiveId: string,
+    dependFriendId: boolean,
+  ) {
+    return dispatch({
+      type: 'message/updateMessageReadStatus',
+      payload: {
+        ids: [friendId],
+        receiveId: receiveId,
+        dependFriendId: dependFriendId,
+      },
+    });
+  }
   //发送文字信息
   function sendTextMessage(
     type: number,
@@ -177,67 +197,6 @@ const ChatContainer: FC = () => {
     });
   }
 
-  const initialMessages = [
-    {
-      type: 'text',
-      content: { text: '主人好，我是智能助理，你的贴心小助手~' },
-      user: {
-        avatar: '//gw.alicdn.com/tfs/TB1DYHLwMHqK1RjSZFEXXcGMXXa-56-62.svg',
-      },
-    },
-    {
-      type: 'image',
-      content: {
-        picUrl:
-          'https://gw.alicdn.com/tfs/TB1HURhcBCw3KVjSZR0XXbcUpXa-750-364.png',
-      },
-    },
-  ];
-  // 默认快捷短语，可选
-  const defaultQuickReplies = [
-    {
-      icon: 'message',
-      name: '联系人工服务',
-      isNew: true,
-      isHighlight: true,
-    },
-    {
-      name: '短语1',
-      isNew: true,
-    },
-    {
-      name: '短语2',
-      isHighlight: true,
-    },
-    {
-      name: '短语3',
-    },
-  ];
-  // 快捷短语回调，可根据 item 数据做出不同的操作，这里以发送文本消息为例
-  function handleQuickReplyClick(item: any) {
-    handleSend('text', item.name);
-  }
-  // 发送回调
-  function handleSend(type: string, val: any) {
-    if (type === 'text' && val.trim()) {
-      // TODO: 发送请求
-      appendMsg({
-        type: 'text',
-        content: { text: val },
-        position: 'right',
-      });
-
-      setTyping(true);
-
-      // 模拟回复消息
-      setTimeout(() => {
-        appendMsg({
-          type: 'text',
-          content: { text: '亲，您遇到什么问题啦？请简要描述您的问题~' },
-        });
-      }, 1000);
-    }
-  }
   function renderMessageContent(msg: any) {
     const { type, content } = msg;
 
@@ -325,6 +284,7 @@ const ChatContainer: FC = () => {
               // if(socket){
               //   socket.emit('')
               // }
+
               appendMsg({
                 type: MsgType.Message.toString(),
                 //_id:item.id,
@@ -345,42 +305,6 @@ const ChatContainer: FC = () => {
             }
           });
       }
-      // TODO: 发送请求
-      // sendTextRequest.run(0, val, userId || "", currentFriendId).then ((result:"success"|"failed") =>{
-      //   if (result === "success"){
-      //     appendMsg({
-      //       type: MsgType.Message.toString(),
-      //       //_id:item.id,
-      //       position:"right",
-      //       content: {
-      //         //text: '主人好，我是智能助理，你的贴心小助手~',
-      //         [msgKey(MsgType.Message)]:val
-      //       },
-      //       createdAt:dayjs().valueOf(),
-      //       hasTime:true,
-      //       user: {
-      //         avatar: myAvatar||"",
-      //       },
-      //     });
-      //   }else{
-      //     message.error("发送失败");
-      //     setTyping(false);
-      //   }
-      // })
-
-      // appendMsg({
-      //   type: 'text',
-      //   content: { text: val },
-      //   position: 'right',
-      // });
-
-      // 模拟回复消息
-      // setTimeout(() => {
-      //   appendMsg({
-      //     type: 'text',
-      //     content: { text: '亲，您遇到什么问题啦？请简要描述您的问题~' },
-      //   });
-      // }, 1000);
     }
   };
 
@@ -423,7 +347,6 @@ const ChatContainer: FC = () => {
         ]}
         renderMessageContent={renderMessageContent}
         //quickReplies={defaultQuickReplies} //会造成内存溢出
-        onQuickReplyClick={handleQuickReplyClick}
         onSend={sendMsg}
         //Composer={"<input/>"}
       />

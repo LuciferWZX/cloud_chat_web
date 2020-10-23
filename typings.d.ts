@@ -11,3 +11,4 @@ declare module '*.svg' {
 declare module 'react-custom-scrollbars';
 declare module 'antd-dayjs-webpack-plugin';
 declare module 'socket.io-client';
+declare module 'animejs';

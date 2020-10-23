@@ -28,6 +28,7 @@ const ContactList: FC = () => {
       },
     });
   };
+
   const renderConversations = () => {
     return conversations.map((item, index) => {
       return (
