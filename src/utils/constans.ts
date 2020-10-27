@@ -55,3 +55,10 @@ export enum SocketActionType {
 export enum SocketChannelType {
   UserActionChannel = 'user-channel', //用户操作发送的频道
 }
+export enum InviteStatusType {
+  NoMessageSend = -1,
+  NotCheck = 0,
+  Accepted = 1,
+  Refused = 2,
+  Expired = 3,
+}

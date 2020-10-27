@@ -55,6 +55,7 @@ const SiderBar: FC = () => {
 
     const MENU = [
       { path: '/message', name: '消息', icon: 'MessageOutlined', badge: 10 },
+      { path: '/notification', name: '通知', icon: 'BellOutlined', badge: 20 },
       { path: '/file', name: '文件', icon: 'FolderOutlined', badge: 0 },
     ];
     return MENU.map(item => {

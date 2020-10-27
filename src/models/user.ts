@@ -6,6 +6,7 @@ import {
   fetchUser,
   logout,
   registerUserByEmail,
+  searchUser,
   sendVerifyToEmail,
 } from '@/services/user';
 import { ResponseDataType, StorageType, UserStateType } from '@/utils/constans';
@@ -26,6 +27,22 @@ export interface User {
   username: string;
   token: string;
 }
+export interface Friend {
+  auth: number;
+  avatar: null | string;
+  createTime: string;
+  email: string;
+  id: string;
+  lastLoginTime: string | null;
+  nickname: string | null;
+  phone: string | null;
+  sex: number;
+  updateTime: string;
+  username: string;
+  token: string;
+  inviteStatus: number;
+}
+
 export interface UserModelState {
   user: null | User;
   onlineState: UserStateType;
@@ -39,6 +56,7 @@ export interface UserModelType {
     sendVerifyToEmail: Effect;
     emailLogin: Effect;
     logout: Effect;
+    searchUser: Effect;
   };
   reducers: {
     save: Reducer<UserModelState, any>;
@@ -176,6 +194,22 @@ const UserModel: UserModelType = {
       if (response.code === 100) {
         message.error(response.message);
       }
+    },
+    /**
+     * 查询用户的nickname或者email
+     * @param payload
+     * @param call
+     */
+    *searchUser({ payload }, { call }) {
+      const result: ResponseDataType = yield call(searchUser, payload);
+      if (result.code === 200) {
+        //message.success(result.message);
+        return result.data;
+      }
+      if (result.code === 100) {
+        message.error(result.message);
+      }
+      return null;
     },
   },
   reducers: {

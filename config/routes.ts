@@ -29,6 +29,10 @@ export default [
         path: '/file',
         component: '@/pages/file',
       },
+      {
+        path: '/notification',
+        component: '@/pages/notification',
+      },
       { component: '@/pages/404' },
     ],
   },

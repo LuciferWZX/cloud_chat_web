@@ -49,7 +49,18 @@ export async function updateMessageReadStatus(params: {
   ids: Array<number | string>;
 }) {
   return await request(`/message/updateMessages`, {
-    method: 'POSt',
+    method: 'POST',
+    data: params,
+  });
+}
+
+/**
+ * 发送添加好友邀请
+ * @param params
+ */
+export async function sendInviteMessage(params: { fid: string; desc: string }) {
+  return await request('/message/sendInviteMessage', {
+    method: 'POST',
     data: params,
   });
 }

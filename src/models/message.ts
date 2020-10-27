@@ -4,6 +4,7 @@ import { Effect } from '@@/plugin-dva/connect';
 import {
   fetchConversations,
   fetchFriendChatData,
+  sendInviteMessage,
   sendMessage,
   updateMessageReadStatus,
 } from '@/services/message';
@@ -57,6 +58,7 @@ export interface MessageModelType {
     sendMessage: Effect;
     insideSocket: Effect;
     updateMessageReadStatus: Effect;
+    sendInviteMessage: Effect;
   };
   reducers: {
     save: Reducer<MessageModelState, any>;
@@ -220,6 +222,22 @@ const MessageModel: MessageModelType = {
       if (result.code === 100) {
         message.error(result.message);
       }
+    },
+    /**
+     * 发送好友邀请
+     * @param payload
+     * @param call
+     */
+    *sendInviteMessage({ payload }, { call }) {
+      const result: ResponseDataType = yield call(sendInviteMessage, payload);
+      if (result.code === 200) {
+        message.success(result.message);
+        return true;
+      }
+      if (result.code === 100) {
+        message.error(result.message);
+      }
+      return false;
     },
   },
   reducers: {

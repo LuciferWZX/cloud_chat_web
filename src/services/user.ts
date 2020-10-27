@@ -48,3 +48,14 @@ export async function emailLogin(params: { email: string; password: string }) {
     data: params,
   });
 }
+
+/**
+ * 查询用户
+ * @param param
+ */
+export async function searchUser(param: { searchValue: string }) {
+  console.log({ param });
+  return request(`/user/searchUser?${qs.stringify(param)}`, {
+    method: 'GET',
+  });
+}

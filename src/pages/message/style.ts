@@ -45,10 +45,75 @@ const ContactContainerBox = styled.div`
     background: url('https://gw.alicdn.com/tfs/TB1HURhcBCw3KVjSZR0XXbcUpXa-750-364.png');
   }
 `;
+const AddFriendBox = styled.div`
+  width: 300px;
+  .user-input {
+  }
+  .user-result-box {
+    margin-top: 10px;
+    .find-user {
+      height: 60px;
+      display: flex;
+      .user-avatar {
+        width: 70px;
+      }
+      .user-info-action {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        justify-content: space-around;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: bold;
+        .user-nickname {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .user-email {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-size: 12px;
+          color: #747d8c;
+        }
+      }
+      .user-action {
+        width: 80px;
+        padding-left: 10px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center;
+        .add-action {
+          color: rgba(30, 144, 255, 1);
+        }
+        .check-info-action {
+          color: rgba(30, 144, 255, 1);
+        }
+      }
+    }
+    .no-user {
+      text-align: center;
+      height: 100px;
+      img {
+        height: 80px;
+        width: 100%;
+      }
+      label {
+        font-size: 12px;
+        color: rgba(164, 176, 190, 1);
+      }
+    }
+  }
+`;
 export {
   MessagePageBox,
   ContactBox,
   ContactSearchBarBox,
   ContactListBox,
   ContactContainerBox,
+  AddFriendBox,
 };
